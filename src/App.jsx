@@ -1,0 +1,60 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { Layout } from "./components/Layout";
+import { Login } from "./pages/Login";
+import { Pipeline } from "./pages/Pipeline";
+import { Inbox } from "./pages/Inbox";
+import { Contacts } from "./pages/Contacts";
+import "./App.css";
+
+const RequireAuth = ({ children }) => {
+  const { session, loading } = useAuth();
+  if (loading) return <div className="page-loading">Cargando...</div>;
+  if (!session) return <Navigate to="/login" replace />;
+  return children;
+};
+
+const AppRoutes = () => {
+  const { session, loading } = useAuth();
+
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          loading ? (
+            <div className="page-loading">Cargando...</div>
+          ) : session ? (
+            <Navigate to="/" replace />
+          ) : (
+            <Login />
+          )
+        }
+      />
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <Layout />
+          </RequireAuth>
+        }
+      >
+        <Route index element={<Pipeline />} />
+        <Route path="inbox" element={<Inbox />} />
+        <Route path="contacts" element={<Contacts />} />
+      </Route>
+    </Routes>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+export default App;
