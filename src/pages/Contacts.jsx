@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-const emptyForm = { name: "", phone: "", email: "", source: "manual" };
+const emptyForm = { name: "", phone: "", email: "", city: "", source: "manual" };
 
 export const Contacts = () => {
   const [contacts, setContacts] = useState([]);
@@ -77,6 +77,11 @@ export const Contacts = () => {
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
+        <input
+          placeholder="Ciudad"
+          value={form.city}
+          onChange={(e) => setForm({ ...form, city: e.target.value })}
+        />
         <select
           value={form.source}
           onChange={(e) => setForm({ ...form, source: e.target.value })}
@@ -96,6 +101,7 @@ export const Contacts = () => {
           <span>Nombre</span>
           <span>Teléfono</span>
           <span>Correo</span>
+          <span>Ciudad</span>
           <span>Origen</span>
         </div>
         {contacts.map((c) => (
@@ -103,6 +109,7 @@ export const Contacts = () => {
             <span>{c.name || "—"}</span>
             <span>{c.phone || "—"}</span>
             <span>{c.email || "—"}</span>
+            <span>{c.city || "—"}</span>
             <span>
               <span className="source-badge">{c.source || "manual"}</span>
             </span>

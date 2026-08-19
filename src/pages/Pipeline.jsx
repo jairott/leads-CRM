@@ -33,10 +33,20 @@ export const Pipeline = () => {
   }, [loadBoard]);
 
   const moveDeal = async (dealId, stageId) => {
+    const targetStage = stages.find((s) => s.id === stageId);
+    const isRetargeting = targetStage?.name === "No Cerrado (retargeting)";
+
+    const update = { stage_id: stageId };
+    if (isRetargeting) {
+      const followUp = new Date();
+      followUp.setMonth(followUp.getMonth() + 3);
+      update.next_follow_up_at = followUp.toISOString();
+    }
+
     setDeals((prev) =>
-      prev.map((d) => (d.id === dealId ? { ...d, stage_id: stageId } : d)),
+      prev.map((d) => (d.id === dealId ? { ...d, ...update } : d)),
     );
-    await supabase.from("deals").update({ stage_id: stageId }).eq("id", dealId);
+    await supabase.from("deals").update(update).eq("id", dealId);
   };
 
   if (loading) return <div className="page-loading">Cargando pipeline...</div>;
@@ -69,6 +79,11 @@ export const Pipeline = () => {
                   <div className="deal-contact">{deal.contact?.name || deal.contact?.phone || "Sin nombre"}</div>
                   {deal.source && <div className="deal-source">{deal.source}</div>}
                   {deal.value != null && <div className="deal-value">${deal.value}</div>}
+                  {deal.next_follow_up_at && (
+                    <div className="deal-followup">
+                      🔁 Reintentar: {new Date(deal.next_follow_up_at).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" })}
+                    </div>
+                  )}
                 </div>
               ))}
               {stageDeals.length === 0 && (

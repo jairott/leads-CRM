@@ -235,6 +235,17 @@
   font-weight: 600;
 }
 
+.deal-followup {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  display: inline-block;
+}
+
 /* Inbox */
 .inbox-layout {
   display: flex;
@@ -405,7 +416,7 @@
 .contact-table-header,
 .contact-table-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1.4fr 1fr;
+  grid-template-columns: 1.2fr 1fr 1.4fr 1fr 1fr;
   padding: 12px 16px;
   gap: 10px;
   font-size: 13px;
