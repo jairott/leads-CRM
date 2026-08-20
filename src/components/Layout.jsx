@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { Kanban, MessageCircle, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Kanban, MessageCircle, Users, LogOut } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 export const Layout = () => {
@@ -9,6 +9,10 @@ export const Layout = () => {
         <div className="sidebar-brand">Leads CRM</div>
         <nav className="sidebar-nav">
           <NavLink to="/" end className="sidebar-link">
+            <LayoutDashboard size={18} />
+            Inicio
+          </NavLink>
+          <NavLink to="/pipeline" className="sidebar-link">
             <Kanban size={18} />
             Pipeline
           </NavLink>
