@@ -4,6 +4,7 @@ import { Layout } from "./components/Layout";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Pipeline } from "./pages/Pipeline";
+import { Calendar } from "./pages/Calendar";
 import { Inbox } from "./pages/Inbox";
 import { Contacts } from "./pages/Contacts";
 import "./App.css";
@@ -42,6 +43,7 @@ const AppRoutes = () => {
       >
         <Route index element={<Dashboard />} />
         <Route path="pipeline" element={<Pipeline />} />
+        <Route path="calendar" element={<Calendar />} />
         <Route path="inbox" element={<Inbox />} />
         <Route path="contacts" element={<Contacts />} />
       </Route>

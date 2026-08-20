@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, Kanban, MessageCircle, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Kanban, MessageCircle, Users, LogOut, CalendarDays } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 export const Layout = () => {
@@ -15,6 +15,10 @@ export const Layout = () => {
           <NavLink to="/pipeline" className="sidebar-link">
             <Kanban size={18} />
             Pipeline
+          </NavLink>
+          <NavLink to="/calendar" className="sidebar-link">
+            <CalendarDays size={18} />
+            Calendario
           </NavLink>
           <NavLink to="/inbox" className="sidebar-link">
             <MessageCircle size={18} />

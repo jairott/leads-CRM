@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { ContactDetailPanel } from "../components/ContactDetailPanel";
 
 const emptyForm = { name: "", phone: "", email: "", city: "", source: "manual" };
 
@@ -7,6 +8,7 @@ export const Contacts = () => {
   const [contacts, setContacts] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [selectedContact, setSelectedContact] = useState(null);
 
   const loadContacts = useCallback(async () => {
     const { data } = await supabase
@@ -105,7 +107,12 @@ export const Contacts = () => {
           <span>Origen</span>
         </div>
         {contacts.map((c) => (
-          <div key={c.id} className="contact-table-row">
+          <div
+            key={c.id}
+            className="contact-table-row"
+            onClick={() => setSelectedContact(c)}
+            style={{ cursor: "pointer" }}
+          >
             <span>{c.name || "—"}</span>
             <span>{c.phone || "—"}</span>
             <span>{c.email || "—"}</span>
@@ -117,6 +124,10 @@ export const Contacts = () => {
         ))}
         {contacts.length === 0 && <div className="pipeline-empty">Sin contactos todavía</div>}
       </div>
+
+      {selectedContact && (
+        <ContactDetailPanel contact={selectedContact} onClose={() => setSelectedContact(null)} />
+      )}
     </div>
   );
 };

@@ -1,10 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Bot, BotOff } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 export const Inbox = () => {
+  const [searchParams] = useSearchParams();
+  const contactFromUrl = searchParams.get("contact");
   const [contacts, setContacts] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState(contactFromUrl || null);
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const bottomRef = useRef(null);
@@ -19,6 +22,10 @@ export const Inbox = () => {
       setSelectedId(data[0].id);
     }
   }, [selectedId]);
+
+  useEffect(() => {
+    if (contactFromUrl) setSelectedId(contactFromUrl);
+  }, [contactFromUrl]);
 
   useEffect(() => {
     loadContacts();
