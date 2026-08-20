@@ -7,6 +7,7 @@ import { Pipeline } from "./pages/Pipeline";
 import { Calendar } from "./pages/Calendar";
 import { Inbox } from "./pages/Inbox";
 import { Contacts } from "./pages/Contacts";
+import { PublicBooking } from "./pages/PublicBooking";
 import "./App.css";
 
 const RequireAuth = ({ children }) => {
@@ -21,6 +22,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
+      <Route path="/agendar" element={<PublicBooking />} />
       <Route
         path="/login"
         element={
