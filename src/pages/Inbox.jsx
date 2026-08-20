@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { Bot, BotOff } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 export const Inbox = () => {
@@ -75,6 +76,14 @@ export const Inbox = () => {
 
   const selectedContact = contacts.find((c) => c.id === selectedId);
 
+  const toggleAiPaused = async () => {
+    if (!selectedContact) return;
+    await supabase
+      .from("contacts")
+      .update({ ai_paused: !selectedContact.ai_paused })
+      .eq("id", selectedContact.id);
+  };
+
   return (
     <div className="inbox-layout">
       <div className="inbox-list">
@@ -99,7 +108,21 @@ export const Inbox = () => {
             <div className="inbox-thread-header">
               {selectedContact.name || selectedContact.phone || "Sin nombre"}
               <span className="inbox-thread-phone">{selectedContact.phone}</span>
+              <button
+                type="button"
+                className={`ai-toggle-btn ${selectedContact.ai_paused ? "paused" : ""}`}
+                onClick={toggleAiPaused}
+                title={selectedContact.ai_paused ? "Reactivar IA" : "Pausar IA y tomar control manual"}
+              >
+                {selectedContact.ai_paused ? <BotOff size={15} /> : <Bot size={15} />}
+                {selectedContact.ai_paused ? "IA pausada" : "IA activa"}
+              </button>
             </div>
+            {selectedContact.ai_paused && (
+              <div className="ai-paused-banner">
+                🙋 Tomaste control manual de esta conversación — la IA no le va a responder a este contacto hasta que reactives.
+              </div>
+            )}
             <div className="inbox-thread-body">
               {messages.map((m) => (
                 <div key={m.id} className={`bubble bubble-${m.direction}`}>

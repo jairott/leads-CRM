@@ -427,6 +427,34 @@
   font-weight: 400;
   color: var(--text-muted);
   font-size: 13px;
+  flex: 1;
+}
+
+.ai-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.ai-toggle-btn.paused {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.ai-paused-banner {
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 13px;
+  padding: 10px 20px;
+  border-bottom: 1px solid #f59e0b;
 }
 
 .inbox-thread-body {
