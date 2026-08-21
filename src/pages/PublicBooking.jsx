@@ -56,11 +56,35 @@ const STATE_TIMEZONES = {
 
 const STATES = Object.keys(STATE_TIMEZONES).sort();
 
+const COVERAGE_OPTIONS = [
+  "Seguro de Vida a Término",
+  "Seguro de Vida Entera",
+  "Seguro de Vida para Niños",
+  "Seguro de Gastos Finales",
+  "Seguro por Muerte Accidental",
+  "Seguro de Protección Hipotecaria",
+  "Seguro contra el Cáncer",
+  "Seguro de UCI",
+  "Seguro de Enfermedad Crítica",
+  "Seguro de Hospitalización",
+  "Seguro por Accidentes",
+  "No sé / necesito orientación",
+];
+
+const BENEFITS = [
+  "Consulta inicial gratuita.",
+  "Atención personalizada según tu situación.",
+  "Opciones explicadas de forma clara.",
+  "Sin obligación de compra.",
+  "Agenda directamente desde esta página.",
+];
+
 const emptyForm = {
   name: "",
   phone: "",
   email: "",
   state: "Texas",
+  coverage: "",
   date: "",
   time: "",
 };
@@ -113,6 +137,7 @@ export const PublicBooking = () => {
           email: form.email || null,
           timezone,
           state: form.state,
+          coverage: form.coverage || null,
           source: "landing_own",
         }),
       });
@@ -136,7 +161,7 @@ export const PublicBooking = () => {
   if (success) {
     return (
       <div className="public-booking-screen">
-        <div className="public-booking-card">
+        <div className="public-booking-success-card">
           <h1>¡Listo, {form.name}!</h1>
           <p className="public-booking-subtitle">
             Tu consulta gratuita de protección familiar quedó agendada. Nuestro
@@ -149,89 +174,135 @@ export const PublicBooking = () => {
 
   return (
     <div className="public-booking-screen">
-      <form className="public-booking-card" onSubmit={handleSubmit}>
-        <h1>Consulta gratuita de protección familiar</h1>
-        <p className="public-booking-subtitle">
-          Proteger a tu familia no es un gasto, es un acto de amor. Agenda tu
-          consulta gratuita y te orientamos sin compromiso.
+      <div className="public-booking-intro">
+        <h1>Protege lo que más te importa</h1>
+        <p>
+          Cuéntanos qué te preocupa proteger y agenda tu consulta gratuita con
+          uno de nuestros asesores. Selecciona el día y horario que mejor te
+          convenga.
         </p>
+      </div>
 
-        <label>
-          Nombre completo *
-          <input
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            required
-          />
-        </label>
+      <div className="public-booking-columns">
+        <div className="public-booking-card public-booking-info">
+          <h2>¿Qué estás buscando proteger?</h2>
+          <p className="public-booking-subtitle">
+            Esta información nos ayuda a preparar una conversación más útil
+            para ti.
+          </p>
 
-        <label>
-          Teléfono *
-          <input
-            type="tel"
-            value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            placeholder="(555) 555-5555"
-            required
-          />
-        </label>
+          <label>
+            Cobertura de interés
+            <select
+              value={form.coverage}
+              onChange={(e) => setForm({ ...form, coverage: e.target.value })}
+            >
+              <option value="">Selecciona una opción</option>
+              {COVERAGE_OPTIONS.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <label>
-          Email
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
-        </label>
-
-        <label>
-          Estado *
-          <select
-            value={form.state}
-            onChange={(e) => setForm({ ...form, state: e.target.value })}
-          >
-            {STATES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
+          <ul className="public-booking-benefits">
+            {BENEFITS.map((b) => (
+              <li key={b}>
+                <span className="public-booking-check">✓</span> {b}
+              </li>
             ))}
-          </select>
-        </label>
-
-        <div className="public-booking-row">
-          <label>
-            Fecha *
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-              required
-            />
-          </label>
-          <label>
-            Hora *
-            <input
-              type="time"
-              value={form.time}
-              onChange={(e) => setForm({ ...form, time: e.target.value })}
-              required
-            />
-          </label>
+          </ul>
         </div>
 
-        {error && <div className="auth-error">{error}</div>}
+        <form
+          className="public-booking-card public-booking-form"
+          onSubmit={handleSubmit}
+        >
+          <h2>Agenda tu consulta</h2>
+          <p className="public-booking-subtitle">
+            Completa tus datos y selecciona un horario disponible.
+          </p>
 
-        <button type="submit" disabled={saving}>
-          {saving ? "Agendando..." : "Agendar consulta gratis"}
-        </button>
+          <label>
+            Nombre completo *
+            <input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
+          </label>
 
-        <p className="public-booking-disclaimer">
-          Al solicitar una consulta aceptas que nuestro equipo pueda
-          comunicarse contigo por teléfono, SMS, WhatsApp o email en relación
-          con tu solicitud.
-        </p>
-      </form>
+          <div className="public-booking-row">
+            <label>
+              Teléfono *
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="(555) 555-5555"
+                required
+              />
+            </label>
+            <label>
+              Email
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="correo@email.com"
+              />
+            </label>
+          </div>
+
+          <label>
+            Estado *
+            <select
+              value={form.state}
+              onChange={(e) => setForm({ ...form, state: e.target.value })}
+            >
+              {STATES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="public-booking-row">
+            <label>
+              Fecha *
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                required
+              />
+            </label>
+            <label>
+              Hora *
+              <input
+                type="time"
+                value={form.time}
+                onChange={(e) => setForm({ ...form, time: e.target.value })}
+                required
+              />
+            </label>
+          </div>
+
+          {error && <div className="auth-error">{error}</div>}
+
+          <button type="submit" disabled={saving}>
+            {saving ? "Agendando..." : "Agendar consulta gratis"}
+          </button>
+
+          <p className="public-booking-disclaimer">
+            Al solicitar una consulta aceptas que nuestro equipo pueda
+            comunicarse contigo por teléfono, SMS, WhatsApp o email en
+            relación con tu solicitud.
+          </p>
+        </form>
+      </div>
     </div>
   );
 };

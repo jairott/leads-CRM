@@ -963,26 +963,70 @@
 /* Public booking landing */
 .public-booking-screen {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
   background: var(--sidebar-bg);
-  padding: 24px 16px;
+  padding: 48px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.public-booking-intro {
+  max-width: 720px;
+  text-align: center;
+  color: white;
+}
+
+.public-booking-intro h1 {
+  margin: 0 0 12px;
+  font-size: 30px;
+}
+
+.public-booking-intro p {
+  margin: 0;
+  color: var(--sidebar-text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.public-booking-columns {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  max-width: 940px;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .public-booking-card {
   background: var(--panel);
   border-radius: 16px;
   padding: 36px 32px;
+  flex: 1 1 380px;
+  min-width: 0;
   width: 100%;
-  max-width: 440px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 14px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
 }
 
-.public-booking-card h1 {
+.public-booking-success-card {
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.public-booking-card h1,
+.public-booking-card h2,
+.public-booking-success-card h1 {
   margin: 0;
   font-size: 22px;
   color: var(--text);
@@ -993,6 +1037,33 @@
   color: var(--text-muted);
   font-size: 14px;
   line-height: 1.5;
+}
+
+.public-booking-benefits {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.public-booking-benefits li {
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.public-booking-benefits li:first-child {
+  border-top: none;
+}
+
+.public-booking-check {
+  color: #16a34a;
+  font-weight: 700;
 }
 
 .public-booking-card label {
@@ -1012,6 +1083,8 @@
   font-size: 15px;
   font-weight: 400;
   font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .public-booking-row {
@@ -1044,4 +1117,20 @@
   color: var(--text-muted);
   text-align: center;
   line-height: 1.4;
+}
+
+@media (max-width: 820px) {
+  .public-booking-columns {
+    flex-direction: column;
+  }
+
+  .public-booking-intro h1 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .public-booking-row {
+    flex-direction: column;
+  }
 }
