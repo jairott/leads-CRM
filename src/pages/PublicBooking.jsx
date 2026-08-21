@@ -58,10 +58,10 @@ const STATE_TIMEZONES = {
 const STATES = Object.keys(STATE_TIMEZONES).sort();
 
 const COVERAGE_OPTIONS = [
+  "Seguro de Gastos Finales",
   "Seguro de Vida a Término",
   "Seguro de Vida Entera",
   "Seguro de Vida para Niños",
-  "Seguro de Gastos Finales",
   "Seguro por Muerte Accidental",
   "Seguro de Protección Hipotecaria",
   "Seguro contra el Cáncer",
@@ -97,7 +97,8 @@ const SUPABASE_ANON_KEY =
 
 export const PublicBooking = () => {
   const [searchParams] = useSearchParams();
-  const coverageFromUrl = searchParams.get("coverage") || "";
+  const coverageFromUrl =
+    searchParams.get("coverage") || "Seguro de Gastos Finales";
   const [form, setForm] = useState({ ...emptyForm, coverage: coverageFromUrl });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -167,8 +168,8 @@ export const PublicBooking = () => {
         <div className="public-booking-success-card">
           <h1>¡Listo, {form.name}!</h1>
           <p className="public-booking-subtitle">
-            Tu consulta gratuita de protección familiar quedó agendada. Nuestro
-            equipo se pondrá en contacto contigo para confirmar los detalles.
+            Tu consulta gratuita quedó agendada. Nuestro equipo se pondrá en
+            contacto contigo para confirmar los detalles.
           </p>
         </div>
       </div>
@@ -178,11 +179,11 @@ export const PublicBooking = () => {
   return (
     <div className="public-booking-screen">
       <div className="public-booking-intro">
-        <h1>Protege lo que más te importa</h1>
+        <h1>Protege a tu familia de los gastos finales</h1>
         <p>
-          Cuéntanos qué te preocupa proteger y agenda tu consulta gratuita con
-          uno de nuestros asesores. Selecciona el día y horario que mejor te
-          convenga.
+          Que tu familia no tenga que preocuparse por gastos funerarios en un
+          momento difícil. Agenda tu consulta gratuita con uno de nuestros
+          asesores y selecciona el día y horario que mejor te convenga.
         </p>
       </div>
 

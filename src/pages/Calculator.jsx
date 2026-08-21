@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const COVERAGE_OPTIONS = [50000, 100000, 150000, 250000, 500000, 1000000];
+const COVERAGE_OPTIONS = [5000, 10000, 15000, 20000, 25000, 30000, 40000];
 
-// Tabla de tarifas ilustrativa (dólares por cada $1,000 de cobertura, al mes).
-// No son tarifas reales de ninguna aseguradora — son un estimado genérico
-// calibrado para dar resultados creíbles como gancho de marketing.
-// Ajustar aquí si el negocio da una tabla de tarifas real.
+// Tabla de tarifas ilustrativa (dólares por cada $1,000 de cobertura, al mes)
+// para Seguro de Gastos Finales (final expense) — montos bajos, dirigido a
+// adultos mayores. No son tarifas reales de ninguna aseguradora, son un
+// estimado genérico calibrado por edad. Ajustar aquí si el negocio da una
+// tabla de tarifas real de Quintero & Partners / American Income Life.
 const RATE_TABLE = [
-  { maxAge: 29, nonSmoker: 0.05, smoker: 0.09 },
-  { maxAge: 39, nonSmoker: 0.07, smoker: 0.13 },
-  { maxAge: 49, nonSmoker: 0.12, smoker: 0.22 },
-  { maxAge: 59, nonSmoker: 0.25, smoker: 0.45 },
-  { maxAge: 200, nonSmoker: 0.5, smoker: 0.9 },
+  { maxAge: 59, nonSmoker: 2.5, smoker: 3.5 },
+  { maxAge: 64, nonSmoker: 3.2, smoker: 4.5 },
+  { maxAge: 69, nonSmoker: 4.0, smoker: 5.6 },
+  { maxAge: 74, nonSmoker: 5.2, smoker: 7.3 },
+  { maxAge: 79, nonSmoker: 7.0, smoker: 9.8 },
+  { maxAge: 200, nonSmoker: 9.5, smoker: 13.3 },
 ];
 
 const rateFor = (age, smoker) => {
@@ -22,15 +24,15 @@ const rateFor = (age, smoker) => {
 
 export const Calculator = () => {
   const navigate = useNavigate();
-  const [age, setAge] = useState("35");
-  const [coverage, setCoverage] = useState(250000);
+  const [age, setAge] = useState("65");
+  const [coverage, setCoverage] = useState(15000);
   const [smoker, setSmoker] = useState(false);
   const [result, setResult] = useState(null);
 
   const handleCalculate = (e) => {
     e.preventDefault();
     const ageNum = parseInt(age, 10);
-    if (!ageNum || ageNum < 18 || ageNum > 85) return;
+    if (!ageNum || ageNum < 40 || ageNum > 90) return;
 
     const rate = rateFor(ageNum, smoker);
     const monthly = (coverage / 1000) * rate;
@@ -39,18 +41,19 @@ export const Calculator = () => {
 
   const goToBooking = () => {
     navigate(
-      `/agendar?coverage=${encodeURIComponent("Seguro de Vida a Término")}`,
+      `/agendar?coverage=${encodeURIComponent("Seguro de Gastos Finales")}`,
     );
   };
 
   return (
     <div className="public-booking-screen">
       <div className="public-booking-intro">
-        <h1>Calcula tu estimado de protección</h1>
+        <h1>Calcula tu estimado de Seguro de Gastos Finales</h1>
         <p>
-          En menos de un minuto ve cuánto podría costar proteger a tu familia.
-          Es un estimado general — el precio final lo confirma tu asesor en la
-          consulta gratuita.
+          En menos de un minuto ve cuánto podría costar cubrir los gastos
+          funerarios y de cierre de vida, para que tu familia no tenga que
+          preocuparse por eso. Es un estimado general — el precio final lo
+          confirma tu asesor en la consulta gratuita.
         </p>
       </div>
 
@@ -62,8 +65,8 @@ export const Calculator = () => {
           Tu edad
           <input
             type="number"
-            min="18"
-            max="85"
+            min="40"
+            max="90"
             value={age}
             onChange={(e) => {
               setAge(e.target.value);
