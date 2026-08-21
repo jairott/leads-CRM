@@ -1134,3 +1134,83 @@
     flex-direction: column;
   }
 }
+
+.public-booking-calc-link {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.public-booking-calc-link:hover {
+  text-decoration: underline;
+}
+
+/* Calculator */
+.calculator-card {
+  max-width: 440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.calculator-checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.calculator-checkbox input {
+  width: auto !important;
+  margin: 0;
+}
+
+.calculator-card button[type="submit"] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  margin-top: 6px;
+}
+
+.calculator-result {
+  margin-top: 8px;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.calculator-result-amount {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.calculator-result-amount span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.calculator-result-disclaimer {
+  margin: 10px 0 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.calculator-cta {
+  width: 100%;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 15px;
+}

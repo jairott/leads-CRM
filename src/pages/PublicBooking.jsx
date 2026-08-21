@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 
 const STATE_TIMEZONES = {
   Alabama: "America/Chicago",
@@ -95,7 +96,9 @@ const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdseG1ha2djdnp5bXB1aW9xdmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDI5NDUsImV4cCI6MjEwMjcxODk0NX0.WDAfmLq-ySTbAMH8rWfyHCtGdQRgOJzwfLU6jenbWks";
 
 export const PublicBooking = () => {
-  const [form, setForm] = useState(emptyForm);
+  const [searchParams] = useSearchParams();
+  const coverageFromUrl = searchParams.get("coverage") || "";
+  const [form, setForm] = useState({ ...emptyForm, coverage: coverageFromUrl });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(null);
@@ -213,6 +216,10 @@ export const PublicBooking = () => {
               </li>
             ))}
           </ul>
+
+          <Link to="/calculadora" className="public-booking-calc-link">
+            ¿No sabes cuánto podría costarte? Calcula tu estimado →
+          </Link>
         </div>
 
         <form
