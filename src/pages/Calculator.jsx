@@ -17,13 +17,57 @@ const AMOUNT_OPTIONS = [
   { value: "100", label: "Aprox." },
 ];
 
-// PLACEHOLDER: reemplazar con la tabla real edad×monto→cobertura de Lisbeth
-const COVERAGE_TABLE = {
-  "18-34": { 35: 150000, 50: 220000, 75: 320000, 100: 420000 },
-  "35-44": { 35: 130000, 50: 190000, 75: 280000, 100: 370000 },
-  "45-54": { 35: 90000, 50: 140000, 75: 210000, 100: 290000 },
-  "55-64": { 35: 60000, 50: 95000, 75: 150000, 100: 210000 },
-  "65+": { 35: 15000, 50: 22000, 75: 32000, 100: 42000 },
+// Tabla oficial de Quintero & Partners (monto mensual -> cobertura), verificada
+// para dos edades de referencia: 35 y 50 años. Se interpola/extrapola el monto
+// mensual elegido contra estos puntos oficiales. NO se inventan cifras fuera
+// de este rango: si el monto elegido no cae dentro de la tabla, se muestra
+// un aviso en vez de un número.
+// TODO: pedir a Lisbeth/Quintero & Partners la tabla completa por rango de
+// edad (45-54, 55-64, 65+) para reemplazar la aproximación de abajo.
+const OFFICIAL_TABLE_35 = [
+  { monthly: 22.75, coverage: 10000 },
+  { monthly: 42.15, coverage: 20000 },
+  { monthly: 58.23, coverage: 30000 },
+  { monthly: 67.6, coverage: 40000 },
+  { monthly: 84.5, coverage: 50000 },
+];
+
+const OFFICIAL_TABLE_50 = [
+  { monthly: 42.25, coverage: 10000 },
+  { monthly: 84.1, coverage: 20000 },
+  { monthly: 126.15, coverage: 30000 },
+  { monthly: 146.47, coverage: 40000 },
+  { monthly: 183.09, coverage: 50000 },
+];
+
+// 18-34 y 35-44 se aproximan con la tabla de 35 años; 45-54 se aproxima con
+// la tabla de 50 años (referencia más cercana disponible). 55-64 y 65+ no
+// tienen tabla oficial cercana todavía, así que no se muestra un número.
+const AGE_TO_TABLE = {
+  "18-34": OFFICIAL_TABLE_35,
+  "35-44": OFFICIAL_TABLE_35,
+  "45-54": OFFICIAL_TABLE_50,
+};
+
+const estimateCoverage = (ageBucket, monthly) => {
+  const table = AGE_TO_TABLE[ageBucket];
+  if (!table) return null; // 55-64 y 65+: sin tabla oficial cercana aún
+  if (monthly < table[0].monthly) return null; // fuera de rango por abajo
+  if (monthly > table[table.length - 1].monthly) {
+    return { capped: true, coverage: table[table.length - 1].coverage };
+  }
+  for (let i = 0; i < table.length - 1; i++) {
+    const a = table[i];
+    const b = table[i + 1];
+    if (monthly >= a.monthly && monthly <= b.monthly) {
+      const frac = (monthly - a.monthly) / (b.monthly - a.monthly);
+      const coverage = Math.round(
+        (a.coverage + frac * (b.coverage - a.coverage)) / 100
+      ) * 100;
+      return { capped: false, coverage };
+    }
+  }
+  return null;
 };
 
 export const Calculator = () => {
@@ -32,7 +76,8 @@ export const Calculator = () => {
   const [age, setAge] = useState(null);
   const [amt, setAmt] = useState(null);
 
-  const coverage = age && amt ? COVERAGE_TABLE[age][amt] : null;
+  const estimate = age && amt ? estimateCoverage(age, Number(amt)) : null;
+  const coverage = estimate ? estimate.coverage : null;
 
   const goToBooking = () => {
     navigate("/agendar");
@@ -118,7 +163,7 @@ export const Calculator = () => {
                   ¿Cuánto te gustaría pagar al mes?
                 </div>
                 <div className="q-hint">
-                  Este es exactamente lo que pagarías — sin cargos adicionales
+                  Esto es una referencia de lo que podrías pagar
                 </div>
                 <div className="amount-row">
                   {AMOUNT_OPTIONS.map((opt) => (
@@ -157,19 +202,36 @@ export const Calculator = () => {
             {step === 3 && (
               <div className="step active">
                 <div className="result-badge">
-                  <div className="r-label">Tu cobertura estimada</div>
-                  <div className="r-amount">
-                    {coverage ? `$${coverage.toLocaleString("en-US")}` : "$—"}
-                  </div>
-                  <div className="r-sub">
-                    {amt
-                      ? `con $${amt}/mes para proteger a tu familia`
-                      : "para proteger a tu familia"}
-                  </div>
+                  {coverage ? (
+                    <>
+                      <div className="r-label">Tu cobertura estimada</div>
+                      <div className="r-amount">
+                        {estimate?.capped ? "Más de " : ""}
+                        {`$${coverage.toLocaleString("en-US")}`}
+                      </div>
+                      <div className="r-sub">
+                        {amt
+                          ? `con $${amt}/mes para proteger a tu familia`
+                          : "para proteger a tu familia"}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="r-label">Tu cobertura estimada</div>
+                      <div className="r-amount" style={{ fontSize: "1.4rem" }}>
+                        Tu asesora te la confirma en la llamada
+                      </div>
+                      <div className="r-sub">
+                        Con tu edad y presupuesto, lo mejor es revisarlo en
+                        persona para darte el monto correcto.
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div className="result-note">
-                  *Estimado inicial — tu asesora confirma el monto exacto en
-                  la llamada
+                  Estos montos son aproximados y se utilizan únicamente como
+                  referencia. La cotización final dependerá de cada persona y
+                  de su elegibilidad.
                 </div>
                 <div className="reassure-box">
                   <span>🛡️</span>
@@ -241,7 +303,7 @@ export const Calculator = () => {
       </div>
 
       <div className="footer">
-        Seguro de Protección Familiar · JT Business Consulting
+        Protección Familiar · JT Business Consulting
         <br />
         Este es un estimado informativo, no una cotización final.
       </div>

@@ -17,17 +17,17 @@ const STATE_TIMEZONES = {
 const STATES = Object.keys(STATE_TIMEZONES).sort();
 
 const COVERAGE_OPTIONS = [
-  "Seguro de Gastos Finales",
-  "Seguro de Vida a Término",
-  "Seguro de Vida Entera",
-  "Seguro de Vida para Niños",
-  "Seguro por Muerte Accidental",
-  "Seguro de Protección Hipotecaria",
-  "Seguro contra el Cáncer",
-  "Seguro de UCI",
-  "Seguro de Enfermedad Crítica",
-  "Seguro de Hospitalización",
-  "Seguro por Accidentes",
+  "Protección de Gastos Finales",
+  "Protección de Vida a Término",
+  "Protección de Vida Entera",
+  "Protección de Vida para Niños",
+  "Protección por Muerte Accidental",
+  "Protección Hipotecaria",
+  "Protección contra el Cáncer",
+  "Protección de UCI",
+  "Protección de Enfermedad Crítica",
+  "Protección de Hospitalización",
+  "Protección por Accidentes",
   "No sé / necesito orientación",
 ];
 
@@ -65,7 +65,7 @@ const isoDate = (d) => d.toISOString().slice(0, 10);
 export const PublicBooking = () => {
   const [searchParams] = useSearchParams();
   const coverageFromUrl =
-    searchParams.get("coverage") || "Seguro de Gastos Finales";
+    searchParams.get("coverage") || "Protección de Gastos Finales";
   const [form, setForm] = useState({ ...emptyForm, coverage: coverageFromUrl });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
