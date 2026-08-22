@@ -381,17 +381,50 @@
 }
 
 .inbox-list-item {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
   border-bottom: 1px solid var(--border);
-  padding: 14px 16px;
 }
 
 .inbox-list-item.active {
   background: var(--bg);
+}
+
+.inbox-list-item-main {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 14px 16px;
+}
+
+.inbox-list-delete {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 12px;
+}
+
+.inbox-list-delete:hover {
+  color: #dc2626;
+}
+
+.inbox-delete-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+}
+
+.inbox-delete-btn:hover {
+  background: #fee2e2;
+  border-color: #dc2626;
 }
 
 .inbox-list-name {
@@ -561,10 +594,27 @@
 .contact-table-header,
 .contact-table-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1.4fr 1fr 1fr;
+  grid-template-columns: 1.2fr 1fr 1.4fr 1fr 1fr auto;
+  align-items: center;
   padding: 12px 16px;
   gap: 10px;
   font-size: 13px;
+}
+
+.contact-row-delete {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-row-delete:hover {
+  background: #fee2e2;
+  border-color: #dc2626;
 }
 
 .contact-table-header {

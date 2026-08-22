@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Bot, BotOff } from "lucide-react";
+import { Bot, BotOff, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 export const Inbox = () => {
@@ -91,20 +91,46 @@ export const Inbox = () => {
       .eq("id", selectedContact.id);
   };
 
+  const deleteContact = async (contact) => {
+    const ok = window.confirm(
+      `¿Eliminar a ${contact.name || contact.phone || "este contacto"}? Esto borra también sus mensajes, citas y actividad. No se puede deshacer.`,
+    );
+    if (!ok) return;
+
+    await supabase.from("contacts").delete().eq("id", contact.id);
+
+    if (contact.id === selectedId) {
+      setSelectedId(null);
+    }
+  };
+
   return (
     <div className="inbox-layout">
       <div className="inbox-list">
         {contacts.map((contact) => (
-          <button
+          <div
             key={contact.id}
             className={`inbox-list-item ${contact.id === selectedId ? "active" : ""}`}
-            onClick={() => setSelectedId(contact.id)}
           >
-            <div className="inbox-list-name">{contact.name || contact.phone || "Sin nombre"}</div>
-            <div className="inbox-list-preview">
-              {contact.messages?.[contact.messages.length - 1]?.body ?? "Sin mensajes"}
-            </div>
-          </button>
+            <button
+              type="button"
+              className="inbox-list-item-main"
+              onClick={() => setSelectedId(contact.id)}
+            >
+              <div className="inbox-list-name">{contact.name || contact.phone || "Sin nombre"}</div>
+              <div className="inbox-list-preview">
+                {contact.messages?.[contact.messages.length - 1]?.body ?? "Sin mensajes"}
+              </div>
+            </button>
+            <button
+              type="button"
+              className="inbox-list-delete"
+              title="Eliminar contacto"
+              onClick={() => deleteContact(contact)}
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
         ))}
         {contacts.length === 0 && <div className="pipeline-empty">Sin contactos todavía</div>}
       </div>
@@ -123,6 +149,14 @@ export const Inbox = () => {
               >
                 {selectedContact.ai_paused ? <BotOff size={15} /> : <Bot size={15} />}
                 {selectedContact.ai_paused ? "IA pausada" : "IA activa"}
+              </button>
+              <button
+                type="button"
+                className="inbox-delete-btn"
+                onClick={() => deleteContact(selectedContact)}
+                title="Eliminar contacto"
+              >
+                <Trash2 size={15} />
               </button>
             </div>
             {selectedContact.ai_paused && (

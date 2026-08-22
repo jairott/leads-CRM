@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { ContactDetailPanel } from "../components/ContactDetailPanel";
 
@@ -60,6 +61,20 @@ export const Contacts = () => {
     setForm(emptyForm);
   };
 
+  const deleteContact = async (e, contact) => {
+    e.stopPropagation();
+    const ok = window.confirm(
+      `¿Eliminar a ${contact.name || contact.phone || "este contacto"}? Esto borra también sus mensajes, citas y actividad. No se puede deshacer.`,
+    );
+    if (!ok) return;
+
+    await supabase.from("contacts").delete().eq("id", contact.id);
+
+    if (selectedContact?.id === contact.id) {
+      setSelectedContact(null);
+    }
+  };
+
   return (
     <div className="contacts-page">
       <form className="contact-form" onSubmit={handleCreate}>
@@ -105,6 +120,7 @@ export const Contacts = () => {
           <span>Correo</span>
           <span>Ciudad</span>
           <span>Origen</span>
+          <span></span>
         </div>
         {contacts.map((c) => (
           <div
@@ -120,6 +136,14 @@ export const Contacts = () => {
             <span>
               <span className="source-badge">{c.source || "manual"}</span>
             </span>
+            <button
+              type="button"
+              className="contact-row-delete"
+              title="Eliminar contacto"
+              onClick={(e) => deleteContact(e, c)}
+            >
+              <Trash2 size={15} />
+            </button>
           </div>
         ))}
         {contacts.length === 0 && <div className="pipeline-empty">Sin contactos todavía</div>}
