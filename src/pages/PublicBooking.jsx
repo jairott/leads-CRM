@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 // Solo los estados donde Lisbeth está licenciada — no ofrecer citas donde no
@@ -49,10 +49,18 @@ const emptyForm = {
   time: "",
 };
 
-const FUNCTION_URL =
-  "https://glxmakgcvzympuioqvlp.supabase.co/functions/v1/public-booking";
+const SUPABASE_URL = "https://glxmakgcvzympuioqvlp.supabase.co";
+const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/public-booking`;
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdseG1ha2djdnp5bXB1aW9xdmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDI5NDUsImV4cCI6MjEwMjcxODk0NX0.WDAfmLq-ySTbAMH8rWfyHCtGdQRgOJzwfLU6jenbWks";
+
+// Solo se puede agendar en los próximos 2 días, de 9 a. m. a 5 p. m.
+const MIN_DAYS_AHEAD = 1;
+const MAX_DAYS_AHEAD = 2;
+const OPEN_TIME = "09:00";
+const CLOSE_TIME = "17:00";
+
+const isoDate = (d) => d.toISOString().slice(0, 10);
 
 export const PublicBooking = () => {
   const [searchParams] = useSearchParams();
@@ -62,6 +70,54 @@ export const PublicBooking = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(null);
+  const [occupiedSlots, setOccupiedSlots] = useState([]);
+
+  const minDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + MIN_DAYS_AHEAD);
+    return isoDate(d);
+  }, []);
+
+  const maxDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + MAX_DAYS_AHEAD);
+    return isoDate(d);
+  }, []);
+
+  useEffect(() => {
+    fetch(`${SUPABASE_URL}/rest/v1/rpc/get_occupied_slots`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: "{}",
+    })
+      .then((res) => res.json())
+      .then((data) => setOccupiedSlots(Array.isArray(data) ? data : []))
+      .catch(() => setOccupiedSlots([]));
+  }, []);
+
+  const timezone = STATE_TIMEZONES[form.state] || "America/Chicago";
+
+  const occupiedTimesForDate = useMemo(() => {
+    if (!form.date) return [];
+    return occupiedSlots
+      .filter((slot) => {
+        const d = new Date(slot.starts_at);
+        const localDate = d.toLocaleDateString("en-CA", { timeZone: timezone });
+        return localDate === form.date;
+      })
+      .map((slot) =>
+        new Date(slot.starts_at).toLocaleTimeString("es", {
+          timeZone: timezone,
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }),
+      );
+  }, [occupiedSlots, form.date, timezone]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,9 +128,18 @@ export const PublicBooking = () => {
       return;
     }
 
+    if (form.date < minDate || form.date > maxDate) {
+      setError("Solo puedes agendar dentro de los próximos 2 días.");
+      return;
+    }
+
+    if (form.time < OPEN_TIME || form.time > CLOSE_TIME) {
+      setError("El horario de consultas es de 9:00 a. m. a 5:00 p. m.");
+      return;
+    }
+
     setSaving(true);
 
-    const timezone = STATE_TIMEZONES[form.state] || "America/Chicago";
     const local = new Date(`${form.date}T${form.time}:00`);
     const startsAtIso = new Date(
       local.getTime() - local.getTimezoneOffset() * 60000,
@@ -242,6 +307,8 @@ export const PublicBooking = () => {
               <input
                 type="date"
                 value={form.date}
+                min={minDate}
+                max={maxDate}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
                 required
               />
@@ -251,11 +318,23 @@ export const PublicBooking = () => {
               <input
                 type="time"
                 value={form.time}
+                min={OPEN_TIME}
+                max={CLOSE_TIME}
                 onChange={(e) => setForm({ ...form, time: e.target.value })}
                 required
               />
             </label>
           </div>
+          <p className="public-booking-hint">
+            Consultas de 9:00 a. m. a 5:00 p. m., dentro de los próximos 2
+            días.
+          </p>
+
+          {form.date && occupiedTimesForDate.length > 0 && (
+            <p className="public-booking-hint public-booking-occupied">
+              Horarios ya ocupados ese día: {occupiedTimesForDate.join(", ")}
+            </p>
+          )}
 
           {error && <div className="auth-error">{error}</div>}
 
