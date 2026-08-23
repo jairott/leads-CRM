@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crédito Claro — Recupera el control de tu historial crediticio</title>
+<meta name="description" content="Revisamos tu reporte de crédito, identificamos qué se puede disputar y te acompañamos paso a paso. Sin cobros por adelantado, sin promesas vacías." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E4A94A'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- Meta Pixel Code -->
+<script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+  document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '2039130713376173');
+  fbq('track', 'PageView');
+</script>
+<!-- End Meta Pixel Code -->
+
+<style>
+  :root {
+    --navy: #0F1420;
+    --navy-2: #1A2233;
+    --navy-3: #232E44;
+    --gold: #E4A94A;
+    --gold-soft: #F4D9A0;
+    --sky: #9FCBE0;
+    --cream: #FBF4E7;
+    --cream-2: #F3E9D6;
+    --ink: #1F2A2E;
+    --ink-soft: #5B6660;
+    --red-flag: #B0483C;
+    --line: #E4D9C2;
+    --ease-out: cubic-bezier(.16,1,.3,1);
+  }
+
+  * , *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: auto; }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .display {
+    font-family: 'Newsreader', serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; border: none; background: none; cursor: pointer; }
+  img, svg { display: block; max-width: 100%; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- Header (chrome over the film) ---------- */
+  .site-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 32px;
+  }
+  .site-header::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 220%; z-index: -1;
+    background: linear-gradient(to bottom, rgba(6,4,2,.55), rgba(6,4,2,0));
+    pointer-events: none;
+  }
+  .brand-word {
+    font-family: 'Newsreader', serif; font-size: 21px; font-weight: 500;
+    color: #fff; text-shadow: 0 1px 22px rgba(0,0,0,.55);
+    letter-spacing: 0.01em;
+  }
+  .brand-word em { font-style: normal; color: var(--gold-soft); }
+  .header-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.35);
+    backdrop-filter: blur(6px);
+    color: #fff; text-shadow: 0 1px 14px rgba(0,0,0,.4);
+    padding: 10px 18px; border-radius: 999px;
+    font-size: 14px; font-weight: 600;
+    transition: background .2s ease, transform .2s ease;
+  }
+  .header-cta:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
+  .site-header.on-light .brand-word,
+  .site-header.on-light .header-cta { color: var(--ink); text-shadow: none; }
+  .site-header.on-light .header-cta { background: rgba(31,42,46,0.08); border-color: rgba(31,42,46,0.18); }
+  .site-header.on-light::before { opacity: 0; }
+
+  /* ---------- The film ---------- */
+  .film-driver { position: relative; height: 620vh; }
+  .film-stage {
+    position: sticky; top: 0; height: 100vh; overflow: hidden;
+    background: var(--navy);
+  }
+  .scene {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Scene 1 — the room */
+  .scene-room { background: radial-gradient(120% 90% at 50% 30%, #171F30 0%, #0B0F18 78%); }
+  .room-wall {
+    position: absolute; inset: 0;
+    display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 1fr);
+    gap: 18px; padding: 12vh 10vw 30vh;
+    opacity: 0.9;
+  }
+  .envelope {
+    position: relative; background: linear-gradient(160deg, #2A3345, #1B2331);
+    border: 1px solid rgba(176,72,60,0.35); border-radius: 3px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+  }
+  .envelope::before {
+    content: ""; position: absolute; top: 8px; left: 10px; right: 10px; height: 3px;
+    background: var(--red-flag); opacity: 0.75; border-radius: 2px;
+  }
+  .desk-report {
+    position: absolute; left: 50%; top: 62%; width: min(340px, 40vw); aspect-ratio: 4/5;
+    transform: translate(-50%, -50%) rotate(-3deg);
+    background: linear-gradient(155deg, #F1E9D8, #E3D6BC);
+    clip-path: polygon(0 0, 92% 0, 100% 8%, 100% 100%, 8% 100%, 0 88%);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    padding: 26px;
+  }
+  .desk-report .rule { height: 2px; background: rgba(31,42,46,0.15); margin: 14px 0; }
+  .desk-report .rule.red { background: var(--red-flag); opacity: 0.55; width: 62%; }
+  .room-caption { position: relative; z-index: 3; text-align: center; padding: 0 24px; }
+
+  /* Scene 2 — the window */
+  .scene-window { background: var(--navy); }
+  .window-frame {
+    position: relative; width: min(60vw, 620px); aspect-ratio: 3/4;
+    border: 14px solid #101725; border-radius: 4px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+    overflow: hidden;
+    background: #0B0F18;
+  }
+  .window-frame::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 48%, rgba(0,0,0,0.4) 50%, transparent 52%),
+                linear-gradient(90deg, transparent 48%, rgba(0,0,0,0.4) 50%, transparent 52%);
+  }
+  .light-beam {
+    position: absolute; inset: 0;
+    background: radial-gradient(60% 70% at 50% 55%, var(--gold-soft) 0%, var(--gold) 35%, transparent 72%);
+    opacity: 0; transform: scale(0.4);
+  }
+
+  /* Scene 3 — rising particles */
+  .scene-rise {
+    background: linear-gradient(180deg, #0B0F18 0%, #1A2233 55%, #2C3A52 100%);
+  }
+  .particle-field { position: absolute; inset: 0; overflow: hidden; }
+  .particle {
+    position: absolute; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gold-soft);
+    box-shadow: 0 0 14px 3px rgba(228,169,74,0.6);
+    opacity: 0;
+  }
+
+  /* Scene 4 — the gauge */
+  .scene-gauge { background: linear-gradient(180deg, #1A2233 0%, #2C3A52 100%); }
+  .gauge-wrap { position: relative; width: min(70vw, 520px); }
+  .gauge-track { stroke: rgba(255,255,255,0.12); }
+  .gauge-fill { stroke: url(#gaugeGrad); stroke-linecap: round; }
+  .gauge-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .gauge-label .k { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-soft); }
+  .gauge-label .v { font-family: 'Newsreader', serif; font-size: 26px; color: #fff; margin-top: 6px; }
+
+  /* Scene 5 — the skyline */
+  .scene-skyline { background: linear-gradient(180deg, #2C3A52 0%, #6C8EA8 55%, #C9DCE6 100%); }
+  .skyline-layer { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; }
+  .skyline-back { fill: #4C6178; opacity: 0.7; }
+  .skyline-front { fill: #34445A; }
+  .sun-disc {
+    position: absolute; left: 50%; bottom: 34%; width: 120px; height: 120px; border-radius: 50%;
+    background: radial-gradient(circle, var(--gold-soft), var(--gold) 70%);
+    box-shadow: 0 0 90px 30px rgba(228,169,74,0.45);
+    transform: translateX(-50%);
+  }
+
+  /* Scene 6 — the door */
+  .scene-door { background: linear-gradient(180deg, #C9DCE6 0%, var(--cream) 100%); }
+  .door-frame {
+    position: relative; width: min(38vw, 300px); aspect-ratio: 1/2.1;
+    background: #2A2018; border-radius: 6px 6px 0 0; overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+  }
+  .door-leaf {
+    position: absolute; inset: 6px 6px 0 6px; bottom: 0;
+    background: linear-gradient(160deg, #3A2C1E, #2A2018);
+    transform-origin: left center;
+  }
+  .door-glow {
+    position: absolute; inset: 0; background: radial-gradient(60% 90% at 50% 50%, var(--gold-soft), var(--gold) 60%, transparent 85%);
+    opacity: 0;
+  }
+
+  /* Beats (copy overlays) */
+  .beat {
+    position: absolute; z-index: 4; max-width: 560px; text-align: center;
+    left: 50%; top: 50%; transform: translate(-50%, -40%);
+    opacity: 0; padding: 0 24px;
+  }
+  .beat h2 { font-size: clamp(28px, 4.4vw, 46px); color: #fff; text-shadow: 0 2px 30px rgba(0,0,0,0.5); line-height: 1.2; }
+  .beat p { font-size: 17px; color: #E9E2D2; margin-top: 14px; text-shadow: 0 2px 18px rgba(0,0,0,0.5); }
+  .beat.dark h2, .beat.dark p { color: var(--ink); text-shadow: none; }
+  .beat::before {
+    content: ""; position: absolute; z-index: -1; inset: -60% -20% -60% -20%;
+    background: radial-gradient(60% 60% at 50% 50%, rgba(6,3,1,0.55), rgba(6,3,1,0.28) 45%, transparent 78%);
+  }
+  .beat.dark::before { display: none; }
+
+  /* ---------- Below-the-film sections ---------- */
+  .section { padding: 108px 0; min-height: min(92vh, 860px); display: flex; align-items: center; }
+  .section-inner { width: 100%; }
+  .eyebrow {
+    display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--red-flag); opacity: 0.85; margin-bottom: 18px;
+  }
+  .section h2 { font-size: clamp(30px, 4vw, 44px); color: var(--ink); max-width: 680px; }
+  .section .lede { font-size: 18px; color: var(--ink-soft); max-width: 560px; margin-top: 16px; }
+
+  .section .wrap > * { opacity: 0; transform: translateY(26px); transition: opacity .9s var(--ease-out), transform .9s var(--ease-out); }
+  .section.in .wrap > * { opacity: 1; transform: none; }
+  .section.in .wrap > *:nth-child(2) { transition-delay: .09s; }
+  .section.in .wrap > *:nth-child(3) { transition-delay: .16s; }
+
+  .steps {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 28px; margin-top: 56px;
+  }
+  .step-card {
+    background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 28px 24px;
+  }
+  .step-num {
+    font-family: 'Newsreader', serif; font-size: 34px; color: var(--gold); margin-bottom: 14px;
+  }
+  .step-card h3 { font-size: 18px; font-weight: 700; font-family: 'Manrope', sans-serif; margin-bottom: 8px; }
+  .step-card p { font-size: 14.5px; color: var(--ink-soft); }
+
+  .section-alt { background: var(--navy-2); color: var(--cream); }
+  .section-alt .eyebrow { color: var(--gold-soft); }
+  .section-alt h2 { color: #fff; }
+  .section-alt .lede { color: #C9D2CE; }
+
+  .promise-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px; margin-top: 48px;
+  }
+  .promise-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px; padding: 26px;
+  }
+  .promise-card h3 { font-size: 17px; font-family: 'Manrope', sans-serif; font-weight: 700; margin-bottom: 10px; color: #fff; }
+  .promise-card p { font-size: 14.5px; color: #C9D2CE; }
+
+  .cta-section { text-align: center; }
+  .cta-section .wrap { display: flex; flex-direction: column; align-items: center; }
+  .cta-section h2 { max-width: 620px; }
+  .btn-primary {
+    position: relative; overflow: hidden;
+    margin-top: 40px;
+    background: linear-gradient(135deg, var(--red-flag), #8C362D);
+    color: #fff; font-weight: 700; font-size: 17px;
+    padding: 18px 40px; border-radius: 12px;
+    box-shadow: 0 18px 40px -14px rgba(176,72,60,0.55);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 22px 48px -12px rgba(176,72,60,0.65); }
+  .btn-primary::before {
+    content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: skewX(-20deg);
+  }
+  .cta-sub { margin-top: 16px; font-size: 13.5px; color: var(--ink-soft); }
+
+  footer {
+    padding: 56px 0 40px; background: var(--navy); color: #9AA4AE;
+  }
+  footer .brand-word { font-size: 18px; margin-bottom: 18px; display: inline-block; }
+  footer .legal { font-size: 12.5px; line-height: 1.7; max-width: 760px; color: #7C8790; }
+  footer .legal + .legal { margin-top: 14px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .film-driver { height: auto; }
+    .film-stage { position: relative; height: auto; padding: 80px 0; }
+    .scene { position: relative; height: 60vh; }
+    .beat { opacity: 1 !important; transform: translate(-50%, -50%) !important; position: relative; left: 0; top: 0; transform: none !important; margin: 0 auto 40px; }
+  }
+
+  @media (max-width: 760px) {
+    .film-driver { height: 480vh; }
+    .room-wall { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); padding: 10vh 8vw 34vh; }
+    .beat h2 { font-size: clamp(24px, 7vw, 34px); }
+    .section { padding: 76px 0; }
+  }
+</style>
+</head>
+<body>
+<noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=2039130713376173&ev=PageView&noscript=1"
+/></noscript>
+
+<header class="site-header" id="siteHeader">
+  <div class="brand-word">Crédito <em>Claro</em></div>
+  <a class="header-cta" href="#contacto">Revisión gratuita</a>
+</header>
+
+<section class="film-driver" id="film">
+  <div class="film-stage" id="filmStage">
+
+    <!-- Scene 1: the room -->
+    <div class="scene scene-room" id="sceneRoom">
+      <div class="room-wall" id="roomWall"></div>
+      <div class="desk-report" id="deskReport">
+        <div class="rule"></div><div class="rule red"></div><div class="rule"></div>
+        <div class="rule"></div><div class="rule red"></div>
+      </div>
+    </div>
+
+    <!-- Scene 2: the window -->
+    <div class="scene scene-window" id="sceneWindow" style="opacity:0">
+      <div class="window-frame">
+        <div class="light-beam" id="lightBeam"></div>
+      </div>
+    </div>
+
+    <!-- Scene 3: rising particles -->
+    <div class="scene scene-rise" id="sceneRise" style="opacity:0">
+      <div class="particle-field" id="particleField"></div>
+    </div>
+
+    <!-- Scene 4: the gauge -->
+    <div class="scene scene-gauge" id="sceneGauge" style="opacity:0">
+      <div class="gauge-wrap">
+        <svg viewBox="0 0 200 120" width="100%">
+          <defs>
+            <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#E4A94A"/>
+              <stop offset="100%" stop-color="#F4D9A0"/>
+            </linearGradient>
+          </defs>
+          <path class="gauge-track" d="M20,110 A80,80 0 0 1 180,110" fill="none" stroke-width="14"/>
+          <path class="gauge-fill" id="gaugePath" d="M20,110 A80,80 0 0 1 180,110" fill="none" stroke-width="14"
+                stroke-dasharray="251" stroke-dashoffset="251"/>
+        </svg>
+        <div class="gauge-label"><span class="k">Tu progreso</span><span class="v">en marcha</span></div>
+      </div>
+    </div>
+
+    <!-- Scene 5: skyline -->
+    <div class="scene scene-skyline" id="sceneSkyline" style="opacity:0">
+      <div class="sun-disc"></div>
+      <svg class="skyline-layer skyline-back" viewBox="0 0 1200 220" preserveAspectRatio="none" style="height:34vh">
+        <g><polygon points="0,220 0,140 80,140 80,90 160,90 160,150 260,150 260,60 340,60 340,150 440,150 440,110 520,110 520,160 620,160 620,80 700,80 700,150 800,150 800,120 900,120 900,160 1000,160 1000,100 1080,100 1080,150 1200,150 1200,220"/></g>
+      </svg>
+      <svg class="skyline-layer skyline-front" viewBox="0 0 1200 260" preserveAspectRatio="none" style="height:24vh">
+        <g><polygon points="0,260 0,170 60,170 60,130 140,130 140,180 220,180 220,110 300,110 300,180 400,180 400,150 470,150 470,200 560,200 560,120 650,120 650,190 740,190 740,160 820,160 820,200 920,200 920,140 1000,140 1000,190 1080,190 1080,150 1200,150 1200,260"/></g>
+      </svg>
+    </div>
+
+    <!-- Scene 6: the door -->
+    <div class="scene scene-door" id="sceneDoor" style="opacity:0">
+      <div class="door-frame">
+        <div class="door-glow" id="doorGlow"></div>
+        <div class="door-leaf" id="doorLeaf"></div>
+      </div>
+    </div>
+
+    <div class="beat" data-in="-0.08" data-peak="0.02" data-out="0.14" id="beat1">
+      <h2>Tu historial de crédito no tiene que seguir pesando así.</h2>
+      <p>Un reporte dañado se siente permanente. No lo es.</p>
+    </div>
+
+    <div class="beat" data-in="0.15" data-peak="0.24" data-out="0.32" id="beat2">
+      <h2>Hay una salida, y empieza con mirar de frente lo que dice tu reporte.</h2>
+    </div>
+
+    <div class="beat" data-in="0.42" data-peak="0.5" data-out="0.6" id="beat3">
+      <h2>Disputamos lo que no corresponde. Documentamos cada paso.</h2>
+    </div>
+
+    <div class="beat" data-in="0.8" data-peak="0.9" data-out="2" id="beat4">
+      <h2>Un reporte más claro abre puertas: un carro, un alquiler, una casa.</h2>
+      <p>Sin promesas de números exactos — cada caso es distinto, y te lo decimos así desde el primer día.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- Cómo funciona -->
+<section class="section" id="howSection">
+  <div class="wrap section-inner">
+    <span class="eyebrow">Cómo funciona</span>
+    <h2>Cuatro pasos, sin letra pequeña.</h2>
+    <p class="lede">Nada de "borramos todo en 24 horas". Así es el proceso real.</p>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>Revisamos tu reporte, sin costo</h3>
+        <p>Pedimos tus tres reportes (Equifax, Experian, TransUnion) y los leemos línea por línea contigo.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>Identificamos qué se puede disputar</h3>
+        <p>Errores, cuentas que no son tuyas, información desactualizada o imposible de verificar.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>Gestionamos las disputas</h3>
+        <p>Preparamos y enviamos las disputas a las agencias y a los acreedores, y damos seguimiento a cada respuesta.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <h3>Te mantenemos informado</h3>
+        <p>Sabes en todo momento qué se resolvió, qué sigue en proceso y qué sigue después.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Transparencia -->
+<section class="section section-alt" id="promiseSection">
+  <div class="wrap section-inner">
+    <span class="eyebrow">Compromiso y transparencia</span>
+    <h2>Lo que sí prometemos — y lo que nunca vamos a prometer.</h2>
+    <div class="promise-grid">
+      <div class="promise-card">
+        <h3>No cobramos por adelantado</h3>
+        <p>El cobro es por el trabajo realizado, nunca antes de empezar a gestionarlo.</p>
+      </div>
+      <div class="promise-card">
+        <h3>Resultados reales, no garantizados</h3>
+        <p>Cada historial es distinto. Lo que sí garantizamos es el trabajo: revisar, disputar y dar seguimiento.</p>
+      </div>
+      <div class="promise-card">
+        <h3>Puedes cancelar sin costo</h3>
+        <p>Tienes derecho a cancelar el servicio dentro de los primeros días, sin penalidad.</p>
+      </div>
+      <div class="promise-card">
+        <h3>Tú también puedes disputar directo</h3>
+        <p>Cualquier persona puede disputar errores en su reporte directamente con las agencias, sin costo. Te explicamos cómo si prefieres hacerlo tú mismo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA / Contacto -->
+<section class="section cta-section" id="contacto">
+  <div class="wrap section-inner">
+    <span class="eyebrow">Primer paso</span>
+    <h2>Empieza con una revisión gratuita de tu reporte.</h2>
+    <p class="lede" style="margin-left:auto;margin-right:auto;">Sin compromiso. Te explicamos qué encontramos y qué opciones tienes.</p>
+    <a class="btn-primary" href="https://wa.me/10000000000?text=Hola%2C%20quiero%20una%20revisi%C3%B3n%20gratuita%20de%20mi%20reporte%20de%20cr%C3%A9dito" id="ctaWhatsapp">Quiero mi revisión gratuita</a>
+    <div class="cta-sub">Respondemos por WhatsApp el mismo día hábil.</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand-word">Crédito <em style="color:var(--gold-soft);font-style:normal">Claro</em></div>
+    <p class="legal">Crédito Claro ofrece servicios de gestión de disputas de crédito. No garantizamos resultados específicos ni la eliminación de información exacta y verificable de tu reporte — los resultados dependen de cada caso y de la respuesta de las agencias y acreedores. No se realiza ningún cobro antes de comenzar a prestar el servicio.</p>
+    <p class="legal">Tienes derecho a disputar por tu cuenta, sin costo, cualquier información que consideres incorrecta directamente con las agencias de crédito. Tienes derecho a cancelar este servicio sin penalidad dentro del plazo indicado en tu contrato.</p>
+  </div>
+</footer>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+
+<script>
+(function () {
+  var ctaWhatsapp = document.getElementById('ctaWhatsapp');
+  if (ctaWhatsapp) {
+    ctaWhatsapp.addEventListener('click', function () {
+      if (typeof window.fbq === 'function') window.fbq('track', 'Lead');
+    });
+  }
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var JUMP = new URLSearchParams(location.search).get('jump');
+
+  // Build the room wall envelopes
+  var wall = document.getElementById('roomWall');
+  for (var i = 0; i < 24; i++) {
+    var e = document.createElement('div');
+    e.className = 'envelope';
+    wall.appendChild(e);
+  }
+
+  // Particle field
+  var field = document.getElementById('particleField');
+  var particles = [];
+  for (var p = 0; p < 46; p++) {
+    var el = document.createElement('div');
+    el.className = 'particle';
+    var x = Math.random() * 100;
+    var size = 3 + Math.random() * 6;
+    el.style.left = x + '%';
+    el.style.bottom = (-10 - Math.random() * 20) + '%';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    field.appendChild(el);
+    particles.push({ el: el, speed: 0.4 + Math.random() * 0.8, drift: (Math.random() - 0.5) * 40 });
+  }
+
+  if (reduced) {
+    // Static, fully-visible fallback — no scroll-driven motion.
+    ['sceneWindow','sceneRise','sceneGauge','sceneSkyline','sceneDoor'].forEach(function(id){
+      document.getElementById(id).style.opacity = 1;
+    });
+    document.getElementById('lightBeam').style.opacity = 1;
+    document.getElementById('lightBeam').style.transform = 'scale(1)';
+    document.getElementById('gaugePath').style.strokeDashoffset = 40;
+    document.getElementById('doorGlow').style.opacity = 1;
+    document.getElementById('doorLeaf').style.transform = 'rotateY(-72deg)';
+    ['beat1','beat2','beat3','beat4'].forEach(function(id){
+      var b = document.getElementById(id);
+      b.style.opacity = 1;
+    });
+    document.querySelectorAll('.section').forEach(function (s) { s.classList.add('in'); });
+    window.__ready = true;
+    return;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  var lenis = new Lenis({ lerp: 0.09, smoothWheel: true });
+  lenis.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add(function (t) { lenis.raf(t * 1000); });
+  gsap.ticker.lagSmoothing(0);
+
+  // ---- Master pinned timeline (creation order matters: pinned scene first) ----
+  var master = gsap.timeline({
+    scrollTrigger: {
+      trigger: '#film',
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 0.6,
+      pin: '#filmStage',
+      invalidateOnRefresh: true,
+    },
+  });
+
+  master
+    .to('#sceneRoom', { opacity: 0, duration: 0.12 }, 0.1)
+    .to('#roomWall', { yPercent: -8, duration: 0.14 }, 0)
+    .fromTo('#sceneWindow', { opacity: 0 }, { opacity: 1, duration: 0.02 }, 0.1)
+    .to('#sceneWindow', { opacity: 0, duration: 0.06 }, 0.3)
+    .fromTo('#lightBeam', { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1.6, duration: 0.2 }, 0.12)
+    .fromTo('#sceneRise', { opacity: 0 }, { opacity: 1, duration: 0.02 }, 0.28)
+    .to('#sceneRise', { opacity: 0, duration: 0.06 }, 0.56)
+    .fromTo('#sceneGauge', { opacity: 0 }, { opacity: 1, duration: 0.02 }, 0.54)
+    .to('#sceneGauge', { opacity: 0, duration: 0.06 }, 0.74)
+    .to('#gaugePath', { strokeDashoffset: 40, duration: 0.22, ease: 'power1.inOut' }, 0.5)
+    .fromTo('#sceneSkyline', { opacity: 0 }, { opacity: 1, duration: 0.02 }, 0.72)
+    .to('#sceneSkyline', { opacity: 0, duration: 0.06 }, 0.9)
+    .fromTo('#sceneDoor', { opacity: 0 }, { opacity: 1, duration: 0.02 }, 0.88)
+    .fromTo('#doorLeaf', { rotateY: 0 }, { rotateY: -72, duration: 0.1, transformPerspective: 900 }, 0.9)
+    .fromTo('#doorGlow', { opacity: 0 }, { opacity: 1, duration: 0.1 }, 0.9);
+
+  // Ambient rising particles, tied to the same scroll progress (created AFTER the pin)
+  particles.forEach(function (pt, idx) {
+    gsap.to(pt.el, {
+      y: '-140vh',
+      x: pt.drift,
+      opacity: 1,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#film',
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 0.6 + (idx % 5) * 0.05,
+      },
+    });
+  });
+  gsap.to('.particle', {
+    opacity: 0,
+    scrollTrigger: { trigger: '#film', start: '78% top', end: 'bottom bottom', scrub: 0.6 },
+  });
+
+  // Beat overlays
+  var beats = Array.prototype.map.call(document.querySelectorAll('.beat'), function (el) {
+    return { el: el, dataIn: +el.dataset.in, peak: +el.dataset.peak, out: +el.dataset.out };
+  });
+  function beatAlpha(b, p) {
+    if (p < b.dataIn || p > b.out) return 0;
+    if (p < b.peak) return (p - b.dataIn) / Math.max(1e-4, b.peak - b.dataIn);
+    if (b.out > 1.5) return 1;
+    return 1 - (p - b.peak) / Math.max(1e-4, b.out - b.peak);
+  }
+
+  var header = document.getElementById('siteHeader');
+  var lastMax = 0, frames = 0;
+  var lastTime = performance.now();
+
+  function applyBeats(p) {
+    beats.forEach(function (b) {
+      var a = beatAlpha(b, p);
+      b.el.style.opacity = a;
+      b.el.style.transform = 'translate(-50%, ' + (-40 + (1 - a) * 6) + '%)';
+    });
+    header.classList.toggle('on-light', p > 0.86);
+  }
+
+  var beatTrigger = ScrollTrigger.create({
+    trigger: '#film',
+    start: 'top top',
+    end: 'bottom bottom',
+    scrub: true,
+    onUpdate: function (self) { applyBeats(self.progress); },
+    onRefresh: function (self) { applyBeats(self.progress); },
+  });
+  applyBeats(beatTrigger.progress || 0);
+
+  // Arrival motion for content sections
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.12 });
+  document.querySelectorAll('.section').forEach(function (s) { io.observe(s); });
+
+  // ---- Dev contract ----
+  if (JUMP !== null) {
+    history.scrollRestoration = 'manual';
+    window.scrollTo(0, +JUMP || 0);
+    ScrollTrigger.update();
+  }
+
+  // Jank meter
+  function tick() {
+    var now = performance.now();
+    var delta = now - lastTime;
+    lastTime = now;
+    if (delta > lastMax) lastMax = delta;
+    frames++;
+    if (frames % 120 === 0) {
+      console.log('[jank] max frame delta last window: ' + lastMax.toFixed(1) + 'ms');
+      lastMax = 0;
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      ScrollTrigger.refresh();
+      if (JUMP !== null) window.scrollTo(0, +JUMP || 0);
+      ScrollTrigger.update();
+      window.__ready = true;
+    });
+  });
+})();
+</script>
+</body>
+</html>
