@@ -179,6 +179,10 @@ export const PublicBooking = () => {
       }
 
       setSuccess(data);
+      // Meta Pixel: evento Lead real (cita agendada exitosamente).
+      if (typeof window !== "undefined" && typeof window.fbq === "function") {
+        window.fbq("track", "Lead");
+      }
     } catch (err) {
       setError("No pudimos conectar con el servidor. Intenta de nuevo.");
     }

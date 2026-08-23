@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Calculator.css";
 
@@ -78,6 +78,19 @@ export const Calculator = () => {
 
   const estimate = age && amt ? estimateCoverage(age, Number(amt)) : null;
   const coverage = estimate ? estimate.coverage : null;
+
+  // Meta Pixel: señal secundaria (no es un Lead real todavía, solo indica
+  // que la persona terminó la calculadora). Útil para audiencias de
+  // retargeting, no cuenta como conversión de Leads.
+  useEffect(() => {
+    if (
+      step === 3 &&
+      typeof window !== "undefined" &&
+      typeof window.fbq === "function"
+    ) {
+      window.fbq("trackCustom", "CalculatorCompleted");
+    }
+  }, [step]);
 
   const goToBooking = () => {
     navigate("/agendar");
