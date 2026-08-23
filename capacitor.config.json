@@ -1,0 +1,5 @@
+{
+  "appId": "com.jairott.leadscrm",
+  "appName": "Leads CRM",
+  "webDir": "dist-capacitor"
+}
