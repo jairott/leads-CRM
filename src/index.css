@@ -1,13 +1,13 @@
 :root {
-  --bg: #f4f6f8;
+  --bg: #f5f8f6;
   --panel: #ffffff;
-  --border: #e2e6ea;
-  --text: #1c2b36;
-  --text-muted: #6b7684;
-  --accent: #2563eb;
+  --border: #dce7e2;
+  --text: #103a3b;
+  --text-muted: #5e7270;
+  --accent: #0e6b67;
   --accent-contrast: #ffffff;
-  --sidebar-bg: #0b3b57;
-  --sidebar-text: #cfe6f2;
+  --sidebar-bg: #103a3b;
+  --sidebar-text: #d9eee8;
 
   font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
