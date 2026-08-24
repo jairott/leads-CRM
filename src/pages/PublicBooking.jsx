@@ -43,11 +43,22 @@ const emptyForm = {
   name: "",
   phone: "",
   email: "",
-  state: "Texas",
+  state: "",
   coverage: "",
   date: "",
   time: "",
 };
+
+// Franjas de 30 min, 9am-5pm, para elegir automáticamente la más próxima
+// disponible cuando alguien prefiere que lo llamemos en vez de escoger hora.
+const BUSINESS_SLOTS = (() => {
+  const slots = [];
+  for (let h = 9; h < 17; h += 1) {
+    slots.push(`${String(h).padStart(2, "0")}:00`);
+    slots.push(`${String(h).padStart(2, "0")}:30`);
+  }
+  return slots;
+})();
 
 const SUPABASE_URL = "https://glxmakgcvzympuioqvlp.supabase.co";
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/public-booking`;
@@ -71,6 +82,9 @@ export const PublicBooking = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(null);
   const [occupiedSlots, setOccupiedSlots] = useState([]);
+  // "schedule": el usuario elige día y hora exacta. "callback": pedimos que
+  // le llamemos lo antes posible (menos fricción que agendar un horario fijo).
+  const [bookingMode, setBookingMode] = useState("schedule");
 
   const minDate = useMemo(() => {
     const d = new Date();
@@ -119,34 +133,91 @@ export const PublicBooking = () => {
       );
   }, [occupiedSlots, form.date, timezone]);
 
+  // Busca la franja de 30 min más próxima que no aparezca ya ocupada, dentro
+  // de la ventana permitida (próximos 2 días, 9am-5pm, sin fines de semana).
+  const findNextAvailableSlot = () => {
+    let cursor = new Date();
+    const limit = new Date();
+    limit.setDate(limit.getDate() + MAX_DAYS_AHEAD);
+
+    while (cursor <= limit) {
+      const dateStr = isoDate(cursor);
+      if (dateStr >= minDate && dateStr <= maxDate) {
+        const weekday = cursor.toLocaleDateString("en-US", { weekday: "short" });
+        if (!["Sat", "Sun"].includes(weekday)) {
+          const occupiedToday = occupiedSlots
+            .filter((slot) => {
+              const d = new Date(slot.starts_at);
+              return (
+                d.toLocaleDateString("en-CA", { timeZone: timezone }) ===
+                dateStr
+              );
+            })
+            .map((slot) =>
+              new Date(slot.starts_at).toLocaleTimeString("en-GB", {
+                timeZone: timezone,
+                hour: "2-digit",
+                minute: "2-digit",
+                hourCycle: "h23",
+              }),
+            );
+          const freeSlot = BUSINESS_SLOTS.find(
+            (t) => !occupiedToday.includes(t),
+          );
+          if (freeSlot) return { date: dateStr, time: freeSlot };
+        }
+      }
+      cursor = new Date(cursor.getTime() + 86400000);
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!form.name || !form.phone || !form.date || !form.time) {
+    let submitForm = form;
+    if (bookingMode === "callback") {
+      const next = findNextAvailableSlot();
+      if (!next) {
+        setError(
+          "No encontramos un horario libre en los próximos 2 días. Intenta elegir día y hora manualmente.",
+        );
+        return;
+      }
+      submitForm = { ...form, date: next.date, time: next.time };
+      setForm(submitForm);
+    }
+
+    if (!submitForm.name || !submitForm.phone || !submitForm.state) {
+      setError("Nombre, teléfono y estado son obligatorios.");
+      return;
+    }
+
+    if (!submitForm.date || !submitForm.time) {
       setError("Nombre, teléfono, fecha y hora son obligatorios.");
       return;
     }
 
-    if (form.date < minDate || form.date > maxDate) {
+    if (submitForm.date < minDate || submitForm.date > maxDate) {
       setError("Solo puedes agendar dentro de los próximos 2 días.");
       return;
     }
 
-    if (form.time < OPEN_TIME || form.time > CLOSE_TIME) {
+    if (submitForm.time < OPEN_TIME || submitForm.time > CLOSE_TIME) {
       setError("El horario de consultas es de 9:00 a. m. a 5:00 p. m.");
       return;
     }
 
     setSaving(true);
 
-    const local = new Date(`${form.date}T${form.time}:00`);
+    const local = new Date(`${submitForm.date}T${submitForm.time}:00`);
     const startsAtIso = new Date(
       local.getTime() - local.getTimezoneOffset() * 60000,
     ).toISOString();
 
-    const digitsOnly = form.phone.replace(/[^0-9]/g, "");
-    const phoneE164 = form.phone.trim().startsWith("+")
+    const digitsOnly = submitForm.phone.replace(/[^0-9]/g, "");
+    const phoneE164 = submitForm.phone.trim().startsWith("+")
       ? `+${digitsOnly}`
       : `+1${digitsOnly}`;
 
@@ -161,12 +232,12 @@ export const PublicBooking = () => {
         body: JSON.stringify({
           phone: phoneE164,
           starts_at: startsAtIso,
-          name: form.name,
-          email: form.email || null,
+          name: submitForm.name,
+          email: submitForm.email || null,
           timezone,
-          state: form.state,
-          coverage: form.coverage || null,
-          source: "landing_own",
+          state: submitForm.state,
+          coverage: submitForm.coverage || null,
+          source: bookingMode === "callback" ? "landing_own_callback" : "landing_own",
         }),
       });
 
@@ -296,7 +367,11 @@ export const PublicBooking = () => {
             <select
               value={form.state}
               onChange={(e) => setForm({ ...form, state: e.target.value })}
+              required
             >
+              <option value="" disabled>
+                Selecciona tu estado
+              </option>
               {STATES.map((s) => (
                 <option key={s} value={s}>
                   {s}
@@ -305,45 +380,76 @@ export const PublicBooking = () => {
             </select>
           </label>
 
-          <div className="public-booking-row">
-            <label>
-              Fecha *
-              <input
-                type="date"
-                value={form.date}
-                min={minDate}
-                max={maxDate}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-                required
-              />
-            </label>
-            <label>
-              Hora *
-              <input
-                type="time"
-                value={form.time}
-                min={OPEN_TIME}
-                max={CLOSE_TIME}
-                onChange={(e) => setForm({ ...form, time: e.target.value })}
-                required
-              />
-            </label>
+          <div className="public-booking-mode-toggle">
+            <button
+              type="button"
+              className={bookingMode === "schedule" ? "is-active" : ""}
+              onClick={() => setBookingMode("schedule")}
+            >
+              Elegir día y hora
+            </button>
+            <button
+              type="button"
+              className={bookingMode === "callback" ? "is-active" : ""}
+              onClick={() => setBookingMode("callback")}
+            >
+              Prefiero que me llamen lo antes posible
+            </button>
           </div>
-          <p className="public-booking-hint">
-            Consultas de 9:00 a. m. a 5:00 p. m., dentro de los próximos 2
-            días.
-          </p>
 
-          {form.date && occupiedTimesForDate.length > 0 && (
-            <p className="public-booking-hint public-booking-occupied">
-              Horarios ya ocupados ese día: {occupiedTimesForDate.join(", ")}
+          {bookingMode === "schedule" ? (
+            <>
+              <div className="public-booking-row">
+                <label>
+                  Fecha *
+                  <input
+                    type="date"
+                    value={form.date}
+                    min={minDate}
+                    max={maxDate}
+                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    required
+                  />
+                </label>
+                <label>
+                  Hora *
+                  <input
+                    type="time"
+                    value={form.time}
+                    min={OPEN_TIME}
+                    max={CLOSE_TIME}
+                    onChange={(e) => setForm({ ...form, time: e.target.value })}
+                    required
+                  />
+                </label>
+              </div>
+              <p className="public-booking-hint">
+                Consultas de 9:00 a. m. a 5:00 p. m., dentro de los próximos 2
+                días.
+              </p>
+
+              {form.date && occupiedTimesForDate.length > 0 && (
+                <p className="public-booking-hint public-booking-occupied">
+                  Horarios ya ocupados ese día: {occupiedTimesForDate.join(", ")}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="public-booking-hint">
+              Te llamaremos en cuanto tengamos un espacio libre, dentro de
+              los próximos 2 días en horario de 9:00 a. m. a 5:00 p. m. — no
+              necesitas elegir una hora exacta.
             </p>
           )}
 
           {error && <div className="auth-error">{error}</div>}
 
           <button type="submit" disabled={saving}>
-            {saving ? "Agendando..." : "Agendar consulta gratis"}
+            {saving
+              ? "Agendando..."
+              : bookingMode === "callback"
+                ? "Que me llamen gratis"
+                : "Agendar consulta gratis"}
           </button>
 
           <p className="public-booking-disclaimer">
