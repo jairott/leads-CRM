@@ -37,7 +37,7 @@ const Q1_OPTIONS = [
     icon: "⌂",
     label: "Para mis hijos o quienes dependen de mí",
     segment: "familiar",
-    coverage: "Protección Hipotecaria",
+    coverage: "Protección de Vida a Término",
     resultText: "proteger a tus hijos y su hogar",
     weight: 3,
   },
