@@ -61,27 +61,80 @@ const emptyForm = {
   time: "",
 };
 
-// Franjas de 30 min, 9am-5pm, para elegir automáticamente la más próxima
-// disponible cuando alguien prefiere que lo llamemos en vez de escoger hora.
-const BUSINESS_SLOTS = (() => {
-  const slots = [];
-  for (let h = 9; h < 17; h += 1) {
+// --- Horario de atención de Liz -------------------------------------------
+// Liz atiende en hora de FLORIDA. Los clientes están en 8 estados repartidos
+// en 3 husos horarios, así que las franjas se definen SIEMPRE en la hora de
+// Liz y se le muestran al cliente traducidas a su propia hora.
+const LIZ_TZ = "America/New_York";
+const LIZ_TZ_LABEL = "hora de Florida";
+
+// Mañana 8:40 a 1:00 p. m. y tarde 4:00 a 9:00 p. m. (hora de Liz).
+// La última cita empieza 30 min antes del cierre.
+const LIZ_SLOTS = (() => {
+  const slots = ["08:40"];
+  for (let h = 9; h < 13; h += 1) {
     slots.push(`${String(h).padStart(2, "0")}:00`);
-    slots.push(`${String(h).padStart(2, "0")}:30`);
+    if (h < 12) slots.push(`${String(h).padStart(2, "0")}:30`);
   }
-  return slots;
+  slots.push("12:30");
+  for (let h = 16; h < 21; h += 1) {
+    slots.push(`${String(h).padStart(2, "0")}:00`);
+    if (h < 20) slots.push(`${String(h).padStart(2, "0")}:30`);
+  }
+  slots.push("20:30");
+  return [...new Set(slots)].sort();
 })();
+
+// Diferencia entre una hora UTC y la misma hora leída en `tz`.
+const zoneOffsetMs = (utcMs, tz) => {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+    .formatToParts(new Date(utcMs))
+    .reduce((acc, part) => ({ ...acc, [part.type]: part.value }), {});
+  const asUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour) % 24,
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  return asUtc - utcMs;
+};
+
+// "2026-08-27" + "08:40" en la zona de Liz -> milisegundos UTC reales.
+const utcMsFromLizTime = (dateStr, timeStr) => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const [hh, mm] = timeStr.split(":").map(Number);
+  const naive = Date.UTC(y, m - 1, d, hh, mm);
+  let ts = naive;
+  for (let i = 0; i < 3; i += 1) ts = naive - zoneOffsetMs(ts, LIZ_TZ);
+  return ts;
+};
+
+const formatInZone = (utcMs, tz) =>
+  new Date(utcMs).toLocaleTimeString("es-US", {
+    timeZone: tz,
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
 const SUPABASE_URL = "https://glxmakgcvzympuioqvlp.supabase.co";
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/public-booking`;
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdseG1ha2djdnp5bXB1aW9xdmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDI5NDUsImV4cCI6MjEwMjcxODk0NX0.WDAfmLq-ySTbAMH8rWfyHCtGdQRgOJzwfLU6jenbWks";
 
-// Solo se puede agendar en los próximos 2 días, de 9 a. m. a 5 p. m.
+// Solo se agenda a partir del día siguiente; para hoy existe "que me llamen".
 const MIN_DAYS_AHEAD = 1;
-const MAX_DAYS_AHEAD = 2;
-const OPEN_TIME = "09:00";
-const CLOSE_TIME = "17:00";
+const MAX_DAYS_AHEAD = 7;
 
 const isoDate = (d) => d.toISOString().slice(0, 10);
 
@@ -137,59 +190,70 @@ export const PublicBooking = () => {
   const timezone = STATE_TIMEZONES[form.state] || "America/Chicago";
   const isFinalExpense = form.coverage === "Protección de Gastos Finales";
 
-  const occupiedTimesForDate = useMemo(() => {
-    if (!form.date) return [];
-    return occupiedSlots
-      .filter((slot) => {
-        const d = new Date(slot.starts_at);
-        const localDate = d.toLocaleDateString("en-CA", { timeZone: timezone });
-        return localDate === form.date;
-      })
-      .map((slot) =>
-        new Date(slot.starts_at).toLocaleTimeString("es", {
-          timeZone: timezone,
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }),
-      );
-  }, [occupiedSlots, form.date, timezone]);
+  // Instantes exactos (ms UTC) que ya están ocupados.
+  const occupiedMs = useMemo(
+    () =>
+      new Set(
+        occupiedSlots
+          .map((slot) => new Date(slot.starts_at).getTime())
+          .filter((ms) => !Number.isNaN(ms)),
+      ),
+    [occupiedSlots],
+  );
 
-  // Busca la franja de 30 min más próxima que no aparezca ya ocupada, dentro
-  // de la ventana permitida (próximos 2 días, 9am-5pm, sin fines de semana).
+  const isSunday = (dateStr) => {
+    if (!dateStr) return false;
+    const [y, m, d] = dateStr.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d)).getUTCDay() === 0;
+  };
+
+  // Franjas del día elegido, ya traducidas a la hora del cliente.
+  const slotsForDate = useMemo(() => {
+    if (!form.date || isSunday(form.date)) return [];
+    const now = Date.now();
+    return LIZ_SLOTS.map((lizTime) => {
+      const ms = utcMsFromLizTime(form.date, lizTime);
+      return {
+        lizTime,
+        ms,
+        localLabel: formatInZone(ms, timezone),
+        lizLabel: formatInZone(ms, LIZ_TZ),
+        taken: occupiedMs.has(ms),
+        past: ms <= now,
+        // Hora del cliente: no ofrecemos madrugadas ni horas de dormir aunque
+        // caigan dentro del horario de Liz (hay 3 husos de diferencia).
+        localHour: Number(
+          new Date(ms).toLocaleString("en-US", {
+            timeZone: timezone,
+            hour: "2-digit",
+            hour12: false,
+          }).slice(0, 2),
+        ) % 24,
+      };
+    }).filter(
+      (slot) => !slot.past && slot.localHour >= 7 && slot.localHour < 21,
+    );
+  }, [form.date, timezone, occupiedMs]);
+
+  const availableSlots = slotsForDate.filter((slot) => !slot.taken);
+
+  // El cliente y Liz están en husos distintos: solo avisamos si difieren.
+  const showsBothZones = timezone !== LIZ_TZ;
+
+  // Primera franja libre dentro de la ventana permitida, para "que me llamen".
   const findNextAvailableSlot = () => {
-    let cursor = new Date();
-    const limit = new Date();
-    limit.setDate(limit.getDate() + MAX_DAYS_AHEAD);
-
-    while (cursor <= limit) {
-      const dateStr = isoDate(cursor);
-      if (dateStr >= minDate && dateStr <= maxDate) {
-        const weekday = cursor.toLocaleDateString("en-US", { weekday: "short" });
-        if (!["Sat", "Sun"].includes(weekday)) {
-          const occupiedToday = occupiedSlots
-            .filter((slot) => {
-              const d = new Date(slot.starts_at);
-              return (
-                d.toLocaleDateString("en-CA", { timeZone: timezone }) ===
-                dateStr
-              );
-            })
-            .map((slot) =>
-              new Date(slot.starts_at).toLocaleTimeString("en-GB", {
-                timeZone: timezone,
-                hour: "2-digit",
-                minute: "2-digit",
-                hourCycle: "h23",
-              }),
-            );
-          const freeSlot = BUSINESS_SLOTS.find(
-            (t) => !occupiedToday.includes(t),
-          );
-          if (freeSlot) return { date: dateStr, time: freeSlot };
+    const now = Date.now();
+    for (let offset = MIN_DAYS_AHEAD; offset <= MAX_DAYS_AHEAD; offset += 1) {
+      const day = new Date();
+      day.setDate(day.getDate() + offset);
+      const dateStr = isoDate(day);
+      if (isSunday(dateStr)) continue;
+      for (const lizTime of LIZ_SLOTS) {
+        const ms = utcMsFromLizTime(dateStr, lizTime);
+        if (ms > now && !occupiedMs.has(ms)) {
+          return { date: dateStr, time: lizTime, ms };
         }
       }
-      cursor = new Date(cursor.getTime() + 86400000);
     }
     return null;
   };
@@ -203,7 +267,7 @@ export const PublicBooking = () => {
       const next = findNextAvailableSlot();
       if (!next) {
         setError(
-          "No encontramos un horario libre en los próximos 2 días. Intenta elegir día y hora manualmente.",
+          "No encontramos un horario libre esta semana. Intenta elegir día y hora manualmente.",
         );
         return;
       }
@@ -247,21 +311,29 @@ export const PublicBooking = () => {
     }
 
     if (submitForm.date < minDate || submitForm.date > maxDate) {
-      setError("Solo puedes agendar dentro de los próximos 2 días.");
+      setError("Solo puedes agendar desde mañana y hasta dentro de una semana.");
       return;
     }
 
-    if (submitForm.time < OPEN_TIME || submitForm.time > CLOSE_TIME) {
-      setError("El horario de consultas es de 9:00 a. m. a 5:00 p. m.");
+    if (isSunday(submitForm.date)) {
+      setError("Los domingos no atendemos. Elige otro día, por favor.");
+      return;
+    }
+
+    if (!LIZ_SLOTS.includes(submitForm.time)) {
+      setError("Elige una de las horas disponibles en la lista.");
+      return;
+    }
+
+    const startsAtMs = utcMsFromLizTime(submitForm.date, submitForm.time);
+    if (startsAtMs <= Date.now()) {
+      setError("Ese horario ya pasó. Elige otro, por favor.");
       return;
     }
 
     setSaving(true);
 
-    const local = new Date(`${submitForm.date}T${submitForm.time}:00`);
-    const startsAtIso = new Date(
-      local.getTime() - local.getTimezoneOffset() * 60000,
-    ).toISOString();
+    const startsAtIso = new Date(startsAtMs).toISOString();
 
     const phoneE164 = `+1${localDigits}`;
 
@@ -453,38 +525,58 @@ export const PublicBooking = () => {
                     value={form.date}
                     min={minDate}
                     max={maxDate}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, date: e.target.value, time: "" })
+                    }
                     required
                   />
                 </label>
                 <label>
                   Hora *
-                  <input
-                    type="time"
+                  <select
                     value={form.time}
-                    min={OPEN_TIME}
-                    max={CLOSE_TIME}
                     onChange={(e) => setForm({ ...form, time: e.target.value })}
+                    disabled={!form.date || availableSlots.length === 0}
                     required
-                  />
+                  >
+                    <option value="">
+                      {form.date ? "Elige una hora" : "Elige primero el día"}
+                    </option>
+                    {availableSlots.map((slot) => (
+                      <option key={slot.lizTime} value={slot.lizTime}>
+                        {slot.localLabel}
+                        {showsBothZones ? ` (${slot.lizLabel} en Florida)` : ""}
+                      </option>
+                    ))}
+                  </select>
                 </label>
               </div>
-              <p className="public-booking-hint">
-                Consultas de 9:00 a. m. a 5:00 p. m., dentro de los próximos 2
-                días.
-              </p>
 
-              {form.date && occupiedTimesForDate.length > 0 && (
+              {form.date && isSunday(form.date) && (
                 <p className="public-booking-hint public-booking-occupied">
-                  Horarios ya ocupados ese día: {occupiedTimesForDate.join(", ")}
+                  Los domingos no atendemos. Elige otro día, por favor.
                 </p>
               )}
+
+              {form.date &&
+                !isSunday(form.date) &&
+                availableSlots.length === 0 && (
+                  <p className="public-booking-hint public-booking-occupied">
+                    Ese día ya está lleno. Prueba con otro, o pide que te
+                    llamen lo antes posible.
+                  </p>
+                )}
+
+              <p className="public-booking-hint">
+                Las horas se muestran en tu hora local
+                {showsBothZones ? `, con la ${LIZ_TZ_LABEL} entre paréntesis` : ""}.
+                Puedes agendar desde mañana y hasta dentro de una semana.
+              </p>
             </>
           ) : (
             <p className="public-booking-hint">
-              Te llamaremos en cuanto tengamos un espacio libre, dentro de
-              los próximos 2 días en horario de 9:00 a. m. a 5:00 p. m. — no
-              necesitas elegir una hora exacta.
+              Te llamamos lo antes posible, en el primer espacio libre de la
+              agenda de Liz — no necesitas elegir una hora exacta.
             </p>
           )}
 
