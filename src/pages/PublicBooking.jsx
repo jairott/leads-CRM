@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 // Solo los estados donde Lisbeth está licenciada — no ofrecer citas donde no
@@ -85,6 +85,10 @@ const LIZ_SLOTS = (() => {
   return [...new Set(slots)].sort();
 })();
 
+// ¿Este instante choca con el bloque de alguna cita existente?
+const blockedBy = (ms, starts) =>
+  starts.some((taken) => Math.abs(ms - taken) < CONFLICT_MS);
+
 // Diferencia entre una hora UTC y la misma hora leída en `tz`.
 const zoneOffsetMs = (utcMs, tz) => {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -133,6 +137,15 @@ const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdseG1ha2djdnp5bXB1aW9xdmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDI5NDUsImV4cCI6MjEwMjcxODk0NX0.WDAfmLq-ySTbAMH8rWfyHCtGdQRgOJzwfLU6jenbWks";
 
 // Solo se agenda a partir del día siguiente; para hoy existe "que me llamen".
+// El backend reserva un bloque completo por cita: si una cita empieza a las
+// 8:40, las 9:00 ya NO están libres aunque el instante exacto sea distinto.
+// El frontend tiene que razonar con el MISMO bloque o le ofrece al cliente un
+// horario que el servidor va a rechazar (bug de "Ese horario ya está ocupado").
+const SLOT_MINUTES = 30;
+// Cuántas veces buscamos otro hueco antes de rendirnos y avisarle al cliente.
+const MAX_BOOKING_ATTEMPTS = 6;
+const CONFLICT_MS = SLOT_MINUTES * 60 * 1000;
+
 const MIN_DAYS_AHEAD = 1;
 const MAX_DAYS_AHEAD = 7;
 
@@ -172,33 +185,46 @@ export const PublicBooking = () => {
     return isoDate(d);
   }, []);
 
-  useEffect(() => {
-    fetch(`${SUPABASE_URL}/rest/v1/rpc/get_occupied_slots`, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: "{}",
-    })
-      .then((res) => res.json())
-      .then((data) => setOccupiedSlots(Array.isArray(data) ? data : []))
-      .catch(() => setOccupiedSlots([]));
+  const fetchOccupied = useCallback(async () => {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_occupied_slots`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: "{}",
+      });
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      return [];
+    }
   }, []);
+
+  useEffect(() => {
+    fetchOccupied().then(setOccupiedSlots);
+  }, [fetchOccupied]);
 
   const timezone = STATE_TIMEZONES[form.state] || "America/Chicago";
   const isFinalExpense = form.coverage === "Protección de Gastos Finales";
 
-  // Instantes exactos (ms UTC) que ya están ocupados.
-  const occupiedMs = useMemo(
+  // Instantes (ms UTC) en los que ya empieza una cita.
+  const occupiedStarts = useMemo(
     () =>
-      new Set(
-        occupiedSlots
-          .map((slot) => new Date(slot.starts_at).getTime())
-          .filter((ms) => !Number.isNaN(ms)),
-      ),
+      occupiedSlots
+        .map((slot) => new Date(slot.starts_at).getTime())
+        .filter((ms) => !Number.isNaN(ms)),
     [occupiedSlots],
+  );
+
+  // Bloqueado = choca con el bloque de una cita existente, no solo con su
+  // instante exacto. `extra` permite marcar horarios que el servidor acaba de
+  // rechazar durante este mismo envío.
+  const isBlocked = useCallback(
+    (ms, extra = []) => blockedBy(ms, [...occupiedStarts, ...extra]),
+    [occupiedStarts],
   );
 
   const isSunday = (dateStr) => {
@@ -218,7 +244,7 @@ export const PublicBooking = () => {
         ms,
         localLabel: formatInZone(ms, timezone),
         lizLabel: formatInZone(ms, LIZ_TZ),
-        taken: occupiedMs.has(ms),
+        taken: isBlocked(ms),
         past: ms <= now,
         // Hora del cliente: no ofrecemos madrugadas ni horas de dormir aunque
         // caigan dentro del horario de Liz (hay 3 husos de diferencia).
@@ -233,7 +259,7 @@ export const PublicBooking = () => {
     }).filter(
       (slot) => !slot.past && slot.localHour >= 7 && slot.localHour < 21,
     );
-  }, [form.date, timezone, occupiedMs]);
+  }, [form.date, timezone, isBlocked]);
 
   const availableSlots = slotsForDate.filter((slot) => !slot.taken);
 
@@ -241,7 +267,7 @@ export const PublicBooking = () => {
   const showsBothZones = timezone !== LIZ_TZ;
 
   // Primera franja libre dentro de la ventana permitida, para "que me llamen".
-  const findNextAvailableSlot = () => {
+  const findNextAvailableSlot = (rejected = [], starts = occupiedStarts) => {
     const now = Date.now();
     for (let offset = MIN_DAYS_AHEAD; offset <= MAX_DAYS_AHEAD; offset += 1) {
       const day = new Date();
@@ -250,7 +276,7 @@ export const PublicBooking = () => {
       if (isSunday(dateStr)) continue;
       for (const lizTime of LIZ_SLOTS) {
         const ms = utcMsFromLizTime(dateStr, lizTime);
-        if (ms > now && !occupiedMs.has(ms)) {
+        if (ms > now && !blockedBy(ms, [...starts, ...rejected])) {
           return { date: dateStr, time: lizTime, ms };
         }
       }
@@ -263,8 +289,18 @@ export const PublicBooking = () => {
     setError("");
 
     let submitForm = form;
+    // Ocupados frescos: entre que cargó la página y este clic pudo entrar otra
+    // cita, y elegir a ciegas es exactamente lo que hacía perder al lead.
+    let knownStarts = occupiedStarts;
     if (bookingMode === "callback") {
-      const next = findNextAvailableSlot();
+      const fresh = await fetchOccupied();
+      if (fresh.length) {
+        setOccupiedSlots(fresh);
+        knownStarts = fresh
+          .map((slot) => new Date(slot.starts_at).getTime())
+          .filter((ms) => !Number.isNaN(ms));
+      }
+      const next = findNextAvailableSlot([], knownStarts);
       if (!next) {
         setError(
           "No encontramos un horario libre esta semana. Intenta elegir día y hora manualmente.",
@@ -333,47 +369,78 @@ export const PublicBooking = () => {
 
     setSaving(true);
 
-    const startsAtIso = new Date(startsAtMs).toISOString();
-
     const phoneE164 = `+1${localDigits}`;
 
-    try {
-      const res = await fetch(FUNCTION_URL, {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          phone: phoneE164,
-          starts_at: startsAtIso,
-          name: cleanName,
-          email: submitForm.email || null,
-          timezone,
-          state: submitForm.state,
-          coverage: submitForm.coverage || null,
-          source: bookingMode === "callback" ? "landing_own_callback" : "landing_own",
-        }),
-      });
+    // Si el servidor dice "ocupado", NO le mostramos el error al cliente:
+    // marcamos ese horario, buscamos el siguiente libre y reintentamos. Antes
+    // el lead se perdía aquí (visitas sin un solo lead registrado).
+    let attemptForm = submitForm;
+    const rejected = [];
+    let lastError = "";
 
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        setError(data.error || "No pudimos agendar tu consulta. Intenta de nuevo.");
-        setSaving(false);
-        return;
+    for (let attempt = 0; attempt < MAX_BOOKING_ATTEMPTS; attempt += 1) {
+      const startsAtMsTry = utcMsFromLizTime(attemptForm.date, attemptForm.time);
+      if (startsAtMsTry <= Date.now()) {
+        lastError = "Ese horario ya pasó. Elige otro, por favor.";
+        break;
       }
 
-      setSuccess(data);
-      // Meta Pixel: evento Lead real (cita agendada exitosamente).
-      if (typeof window !== "undefined" && typeof window.fbq === "function") {
-        window.fbq("track", "Lead");
+      let data = null;
+      try {
+        const res = await fetch(FUNCTION_URL, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            phone: phoneE164,
+            starts_at: new Date(startsAtMsTry).toISOString(),
+            name: cleanName,
+            email: attemptForm.email || null,
+            timezone,
+            state: attemptForm.state,
+            coverage: attemptForm.coverage || null,
+            source:
+              bookingMode === "callback" ? "landing_own_callback" : "landing_own",
+          }),
+        });
+        data = await res.json();
+
+        if (res.ok && !data.error) {
+          setForm(attemptForm);
+          setSuccess(data);
+          // Meta Pixel: evento Lead real (cita agendada exitosamente).
+          if (typeof window !== "undefined" && typeof window.fbq === "function") {
+            window.fbq("track", "Lead");
+          }
+          setSaving(false);
+          return;
+        }
+
+        lastError = data.error || "No pudimos agendar tu consulta. Intenta de nuevo.";
+      } catch (err) {
+        lastError = "No pudimos conectar con el servidor. Intenta de nuevo.";
+        break;
       }
-    } catch (err) {
-      setError("No pudimos conectar con el servidor. Intenta de nuevo.");
+
+      // Solo reintentamos solos el choque de horario, y solo en modo callback:
+      // si el cliente eligió una hora a propósito, hay que respetarla y avisarle.
+      const isBusy = /ocupad/i.test(lastError);
+      if (!isBusy || bookingMode !== "callback") break;
+
+      rejected.push(startsAtMsTry);
+      const next = findNextAvailableSlot(rejected, knownStarts);
+      if (!next) {
+        lastError =
+          "La agenda se llenó justo ahora. Elige día y hora manualmente, por favor.";
+        break;
+      }
+      attemptForm = { ...attemptForm, date: next.date, time: next.time };
     }
 
+    setError(lastError || "No pudimos agendar tu consulta. Intenta de nuevo.");
     setSaving(false);
   };
 
