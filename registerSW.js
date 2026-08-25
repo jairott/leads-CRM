@@ -1,2 +1,1 @@
-ÿ
-+“û^šŸÛëëz¬µêÒZ;ë
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/leads-CRM/sw.js', { scope: '/leads-CRM/' })})}
