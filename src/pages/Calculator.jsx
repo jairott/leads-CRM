@@ -174,11 +174,12 @@ export const Calculator = () => {
     }
   }, [step, outOfArea]);
 
-  const goToBooking = () => {
+  // mode: "callback" (que le llamen ya) | "schedule" (elegir dia y hora).
+  const goToBooking = (mode = "schedule") => {
     const coverage = whoChoice?.coverage || "No sé / necesito orientación";
     const st = stateChoice?.value && !outOfArea ? stateChoice.value : "";
     navigate(
-      `/agendar?coverage=${encodeURIComponent(coverage)}&state=${encodeURIComponent(st)}`,
+      `/agendar?coverage=${encodeURIComponent(coverage)}&state=${encodeURIComponent(st)}&modo=${mode}`,
     );
   };
 
@@ -368,8 +369,10 @@ export const Calculator = () => {
               <div className="pf-how-item">
                 <div className="pf-how-num">1</div>
                 <div>
-                  <div className="pf-how-title">Eliges tu horario</div>
-                  <div className="pf-how-sub">Toma menos de un minuto.</div>
+                  <div className="pf-how-title">Pides tu llamada</div>
+                  <div className="pf-how-sub">
+                    O eliges día y hora. Toma menos de un minuto.
+                  </div>
                 </div>
               </div>
               <div className="pf-how-item">
@@ -388,24 +391,37 @@ export const Calculator = () => {
               </div>
             </div>
 
-            <div className="pf-cta-row">
+            <div className="pf-cta-row pf-cta-stack">
               <button
                 type="button"
                 className="pf-btn-primary"
-                onClick={goToBooking}
+                onClick={() => goToBooking("callback")}
               >
-                Agendar mi consulta gratuita <span>→</span>
+                Quiero que me llamen ahora <span>→</span>
               </button>
-              <a
+              <button
+                type="button"
                 className="pf-btn-secondary"
-                href={whatsappHref}
-                onClick={trackWhatsApp}
-                target="_blank"
-                rel="noreferrer"
+                onClick={() => goToBooking("schedule")}
               >
-                Prefiero escribirle por WhatsApp
-              </a>
+                Prefiero agendar día y hora
+              </button>
             </div>
+
+            <p className="pf-consent">
+              Al pedir la llamada aceptas que te contactemos por teléfono, SMS o
+              WhatsApp. Sin costo y sin compromiso.
+            </p>
+
+            <a
+              className="pf-btn-whatsapp"
+              href={whatsappHref}
+              onClick={trackWhatsApp}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Prefiero escribirle por WhatsApp
+            </a>
 
             <button type="button" className="pf-restart" onClick={restart}>
               Volver a comenzar

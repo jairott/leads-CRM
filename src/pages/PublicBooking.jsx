@@ -103,7 +103,9 @@ export const PublicBooking = () => {
   const [occupiedSlots, setOccupiedSlots] = useState([]);
   // "schedule": el usuario elige día y hora exacta. "callback": pedimos que
   // le llamemos lo antes posible (menos fricción que agendar un horario fijo).
-  const [bookingMode, setBookingMode] = useState("schedule");
+  const [bookingMode, setBookingMode] = useState(
+    searchParams.get("modo") === "callback" ? "callback" : "schedule",
+  );
 
   const minDate = useMemo(() => {
     const d = new Date();

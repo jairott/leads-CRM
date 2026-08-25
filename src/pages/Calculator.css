@@ -436,3 +436,24 @@
   color: #6b7a75;
   line-height: 1.5;
 }
+
+/* Resultado: llamada inmediata como accion principal, agendar como alterna. */
+.pf-cta-stack { flex-direction: column; gap: 10px; }
+.pf-cta-stack .pf-btn-primary,
+.pf-cta-stack .pf-btn-secondary { width: 100%; }
+.pf-consent {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-soft, #5b6b6a);
+  text-align: center;
+}
+.pf-btn-whatsapp {
+  display: block;
+  margin: 16px auto 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--teal-dark);
+  text-decoration: underline;
+}
