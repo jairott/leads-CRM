@@ -216,6 +216,31 @@ export const PublicBooking = () => {
       return;
     }
 
+    const cleanName = submitForm.name.trim();
+    const letterCount = (cleanName.match(/[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/g) || []).length;
+    if (cleanName.length < 3 || letterCount < 3) {
+      setError("Escribe tu nombre completo para que Liz sepa con quién habla.");
+      return;
+    }
+
+    const phoneDigits = submitForm.phone.replace(/[^0-9]/g, "");
+    const localDigits =
+      phoneDigits.length === 11 && phoneDigits.startsWith("1")
+        ? phoneDigits.slice(1)
+        : phoneDigits;
+    if (localDigits.length !== 10) {
+      setError("Escribe tu teléfono a 10 dígitos, con la clave de área.");
+      return;
+    }
+    if (/^(\d)\1{9}$/.test(localDigits) || localDigits === "1234567890") {
+      setError("Ese número no parece válido. Revísalo, por favor.");
+      return;
+    }
+    if (["0", "1"].includes(localDigits[0])) {
+      setError("La clave de área no puede empezar con 0 ni con 1.");
+      return;
+    }
+
     if (!submitForm.date || !submitForm.time) {
       setError("Nombre, teléfono, fecha y hora son obligatorios.");
       return;
@@ -238,10 +263,7 @@ export const PublicBooking = () => {
       local.getTime() - local.getTimezoneOffset() * 60000,
     ).toISOString();
 
-    const digitsOnly = submitForm.phone.replace(/[^0-9]/g, "");
-    const phoneE164 = submitForm.phone.trim().startsWith("+")
-      ? `+${digitsOnly}`
-      : `+1${digitsOnly}`;
+    const phoneE164 = `+1${localDigits}`;
 
     try {
       const res = await fetch(FUNCTION_URL, {
@@ -254,7 +276,7 @@ export const PublicBooking = () => {
         body: JSON.stringify({
           phone: phoneE164,
           starts_at: startsAtIso,
-          name: submitForm.name,
+          name: cleanName,
           email: submitForm.email || null,
           timezone,
           state: submitForm.state,
