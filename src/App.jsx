@@ -1,67 +1,35 @@
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import { Layout } from "./components/Layout";
-import { Login } from "./pages/Login";
-import { Dashboard } from "./pages/Dashboard";
-import { Pipeline } from "./pages/Pipeline";
-import { Calendar } from "./pages/Calendar";
-import { Inbox } from "./pages/Inbox";
-import { Contacts } from "./pages/Contacts";
+import { lazy, Suspense } from "react";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import { PublicBooking } from "./pages/PublicBooking";
 import { Calculator } from "./pages/Calculator";
 import "./App.css";
 
-const RequireAuth = ({ children }) => {
-  const { session, loading } = useAuth();
-  if (loading) return <div className="page-loading">Cargando...</div>;
-  if (!session) return <Navigate to="/login" replace />;
-  return children;
-};
-
-const AppRoutes = () => {
-  const { session, loading } = useAuth();
-
-  return (
-    <Routes>
-      <Route path="/agendar" element={<PublicBooking />} />
-      <Route path="/calculadora" element={<Calculator />} />
-      <Route
-        path="/login"
-        element={
-          loading ? (
-            <div className="page-loading">Cargando...</div>
-          ) : session ? (
-            <Navigate to="/" replace />
-          ) : (
-            <Login />
-          )
-        }
-      />
-      <Route
-        path="/"
-        element={
-          <RequireAuth>
-            <Layout />
-          </RequireAuth>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="pipeline" element={<Pipeline />} />
-        <Route path="calendar" element={<Calendar />} />
-        <Route path="inbox" element={<Inbox />} />
-        <Route path="contacts" element={<Contacts />} />
-      </Route>
-    </Routes>
-  );
-};
+// El CRM interno (login, dashboard, pipeline, calendario, inbox, contactos y
+// el chequeo de sesion de Supabase Auth) va en su propio chunk. Un visitante
+// que entra desde el anuncio a /calculadora o /agendar no debe descargar ni
+// ejecutar nada de esa app interna — antes se bajaba todo junto en un solo
+// bundle, lo que hacia mas lenta y pesada la carga de las paginas publicas
+// justo en el trafico frio de anuncios (mobile, a veces con red lenta).
+const CrmApp = lazy(() =>
+  import("./CrmApp").then((m) => ({ default: m.CrmApp })),
+);
 
 function App() {
   return (
-    <AuthProvider>
-      <HashRouter>
-        <AppRoutes />
-      </HashRouter>
-    </AuthProvider>
+    <HashRouter>
+      <Routes>
+        <Route path="/agendar" element={<PublicBooking />} />
+        <Route path="/calculadora" element={<Calculator />} />
+        <Route
+          path="/*"
+          element={
+            <Suspense fallback={<div className="page-loading">Cargando...</div>}>
+              <CrmApp />
+            </Suspense>
+          }
+        />
+      </Routes>
+    </HashRouter>
   );
 }
 
