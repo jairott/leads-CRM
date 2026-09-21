@@ -307,6 +307,9 @@ leadForm.addEventListener('submit', async (e) => {
     setWaLinks(currentWaNumber);
     leadForm.hidden = true;
     leadFormSuccess.hidden = false;
+    if (typeof gtag === 'function') {
+      gtag('event', 'conversion', {'send_to': 'AW-18414473405/XOFkCPbz_f8cEL2h2sxE'});
+    }
   } catch (err) {
     leadFormError.textContent = err.message || 'No se pudo enviar. Intenta de nuevo.';
     leadSubmitBtn.disabled = false;
