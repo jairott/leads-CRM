@@ -10,6 +10,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      workbox: {
+        navigateFallbackDenylist: [/^\/leads-CRM\/proteccion-familiar/],
+      },
       manifest: {
         name: 'Leads CRM',
         short_name: 'Leads CRM',
